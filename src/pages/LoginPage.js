@@ -41,7 +41,7 @@ const LoginPage = () => {
     setError('');
     try {
       setLoading(true);
-      const user = login(matric, 'password123', 'STUDENT');
+      login(matric, 'password123', 'STUDENT');
       navigate('/student/dashboard');
     } catch (err) {
       setError(err.message || 'Authentication error.');

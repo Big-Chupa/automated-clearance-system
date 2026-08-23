@@ -27,7 +27,6 @@ const ClearancePage = () => {
 
   const [selectedDocType, setSelectedDocType] = useState(REQUIRED_DOC_TYPES[0]);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [fileName, setFileName] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -51,7 +50,6 @@ const ClearancePage = () => {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      setFileName(file.name);
     }
   };
 
@@ -65,7 +63,6 @@ const ClearancePage = () => {
         uploadDocument(selectedDocType, selectedFile.name, base64Data, sizeKb);
         setUploadSuccess(true);
         setSelectedFile(null);
-        setFileName('');
         setTimeout(() => setUploadSuccess(false), 3500);
       };
       reader.readAsDataURL(selectedFile);
@@ -73,7 +70,6 @@ const ClearancePage = () => {
       // Mock upload if user clicked without browsing
       uploadDocument(selectedDocType, `${selectedDocType.replace(/\s+/g, '_')}_EKSU.pdf`, null, '210 KB');
       setUploadSuccess(true);
-      setFileName('');
       setTimeout(() => setUploadSuccess(false), 3500);
     }
   };
