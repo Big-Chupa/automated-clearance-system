@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EKSU Clearance Portal - Instant Preview</title>
+  <!-- React & Babel CDNs for zero-install instant execution -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root {
+      --primary-color: #701a2b;
+      --primary-hover: #591321;
+      --primary-light: #fdf2f4;
+      --sidebar-bg: #611624;
+      --sidebar-hover: #731b2c;
+      --sidebar-active: #7f2032;
+      --sidebar-text: #fce7eb;
+      --bg-main: #f8fafc;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-full: 9999px;
+      --header-height: 68px;
+      --sidebar-width: 240px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-main); color: var(--text-main); }
+    a, button { cursor: pointer; font-family: inherit; }
+
+    .app-header {
+      height: var(--header-height);
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-brand { display: flex; align-items: center; gap: 0.75rem; }
+    .header-logo-icon { width: 34px; height: 38px; background: var(--primary-color); color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .header-brand-title { font-size: 1.05rem; font-weight: 700; color: var(--primary-color); }
+    .header-brand-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+    .header-actions { display: flex; align-items: center; gap: 1.25rem; }
+    .header-user-profile { display: flex; align-items: center; gap: 0.65rem; }
+    .header-user-name { font-size: 0.85rem; font-weight: 600; text-align: right; }
+    .header-user-role { font-size: 0.75rem; color: var(--text-muted); text-align: right; }
+    .header-avatar-badge { width: 36px; height: 36px; border-radius: 50%; background-color: var(--primary-color); color: #ffffff; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+    .portal-container { display: flex; min-height: calc(100vh - var(--header-height)); }
+    .portal-sidebar { width: var(--sidebar-width); background-color: var(--sidebar-bg); color: var(--sidebar-text); padding: 1.25rem 0; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-portal-title { padding: 0 1.5rem 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #f8b4c0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 0.75rem; }
+    .sidebar-nav-item { margin: 0.2rem 0.85rem; }
+    .sidebar-nav-btn { width: 100%; display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1rem; color: #fce7eb; border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 500; background: transparent; border: none; text-align: left; }
+    .sidebar-nav-btn:hover { background-color: var(--sidebar-hover); color: #fff; }
+    .sidebar-nav-btn.active { background-color: var(--sidebar-active); color: #fff; font-weight: 600; }
+    .sidebar-icon { font-size: 0.75rem; color: #f8b4c0; }
+
+    .portal-content { flex-grow: 1; padding: 2rem 2.5rem; }
+    .breadcrumb-trail { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .page-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .page-main-heading { font-size: 1.6rem; font-weight: 700; }
+    .page-sub-heading { font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .content-card { background-color: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .card-heading-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 1.25rem; }
+
+    .btn-pill-maroon { background-color: var(--primary-color); color: #ffffff; padding: 0.45rem 1.25rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 500; border: none; }
+    .btn-pill-maroon:hover { background-color: var(--primary-hover); }
+    .btn-pill-outline { background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.4rem 1.1rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 500; }
+    .btn-pill-outline:hover { background-color: #f1f5f9; }
+
+    .stat-cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 1.5rem; }
+    .stat-metric-card { background-color: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; }
+    .stat-metric-label { font-size: 0.725rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .stat-metric-number { font-size: 1.75rem; font-weight: 700; margin-top: 0.35rem; }
+
+    .eksu-table-container { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-color); background-color: #ffffff; }
+    .eksu-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+    .eksu-table th { background-color: #fafbfc; color: var(--text-muted); font-weight: 600; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.725rem; }
+    .eksu-table td { padding: 0.85rem 1rem; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
+    .badge-active-pill { background-color: #e0f2fe; color: #0284c7; padding: 0.2rem 0.65rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; }
+
+    .toggle-switch-row { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid #f1f5f9; }
+    .toggle-switch-row:last-child { border-bottom: none; }
+    .toggle-title { font-size: 0.9rem; font-weight: 600; }
+    .toggle-desc { font-size: 0.775rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .switch-control { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch-control input { opacity: 0; width: 0; height: 0; }
+    .switch-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: 0.3s; border-radius: 34px; }
+    .switch-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+    input:checked + .switch-slider { background-color: var(--primary-color); }
+    input:checked + .switch-slider:before { transform: translateX(20px); }
+
+    .notification-card-item { background-color: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between; }
+    .notification-left { display: flex; align-items: center; gap: 1rem; }
+    .notification-icon-box { width: 38px; height: 38px; border-radius: 6px; background-color: #fdf2f4; color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .notification-title { font-size: 0.9rem; font-weight: 600; }
+    .notification-text { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .notification-timestamp { font-size: 0.775rem; color: var(--text-muted); }
+
+    input, select { border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem 0.85rem; width: 100%; font-family: inherit; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    function App() {
+      const [currentView, setCurrentView] = useState('settings'); // 'settings', 'departments', 'reports', 'notifications'
+      const [portalRole, setPortalRole] = useState('ADMIN'); // 'ADMIN' or 'STUDENT'
+
+      const [settings, setSettings] = useState({
+        enableRegistration: true,
+        enableEmailNotifications: true,
+        allowCertificatePrinting: true,
+        maintenanceMode: false,
+        institution: 'Ekiti State University, Ado-Ekiti',
+        academicSession: '2025/2026',
+        storageMode: 'Browser Local Storage (Academic Prototype)',
+        sessionTimeout: '30 minutes'
+      });
+
+      const departments = [
+        { name: 'Department', desc: 'Academic unit verification', officer: 'Dr. T. Ogunleye', email: 'department@eksu.edu.ng', pending: 24, status: 'Active' },
+        { name: 'Faculty', desc: 'Faculty-level verification', officer: 'Mrs. R. Akande', email: 'faculty@eksu.edu.ng', pending: 19, status: 'Active' },
+        { name: 'Library', desc: 'Books and fines', officer: 'Mrs. Funmi Adeyemi', email: 'library@eksu.edu.ng', pending: 18, status: 'Active' },
+        { name: 'Bursary', desc: 'Fees and financial obligations', officer: 'Mr. K. Ojo', email: 'bursary@eksu.edu.ng', pending: 57, status: 'Active' },
+        { name: 'Student Affairs', desc: 'Student affairs obligations', officer: 'Mrs. A. Faleye', email: 'affairs@eksu.edu.ng', pending: 14, status: 'Active' },
+        { name: 'Registry', desc: 'Final clearance verification', officer: 'Mr. P. Adebayo', email: 'registry@eksu.edu.ng', pending: 42, status: 'Active' }
+      ];
+
+      const notifications = [
+        { icon: '✓', title: 'Library clearance approved', text: 'Your library clearance has been approved. No outstanding book or fine was found.', time: '17 Apr 10:42' },
+        { icon: '🕒', title: 'Bursary review in progress', text: 'Your request is currently being checked against the student payment record.', time: '17 Apr 9:16' },
+        { icon: '✓', title: 'Faculty clearance approved', text: 'Faculty-level verification has been completed successfully.', time: '16 Apr 14:05' },
+        { icon: '↗', title: 'Clearance request submitted', text: 'Your request CLR-2026-0063 has been sent to the required clearance units.', time: '15 Apr 9:18' },
+        { icon: 'ℹ', title: 'Profile verification completed', text: 'Your student registration information has been matched to the prototype record.', time: '15 Apr 8:51' }
+      ];
+
+      return (
+        <div>
+          {/* Header */}
+          <header className="app-header">
+            <div className="header-brand">
+              <div className="header-logo-icon">🏛️</div>
+              <div>
+                <div className="header-brand-title">EKSU Clearance Portal</div>
+                <div className="header-brand-subtitle">Ekiti State University, Ado-Ekiti</div>
+              </div>
+            </div>
+
+            <div className="header-actions">
+              <button 
+                onClick={() => setPortalRole(portalRole === 'ADMIN' ? 'STUDENT' : 'ADMIN')}
+                className="btn-pill-outline" 
+                style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem' }}
+                title="Switch Role Preview"
+              >
+                Switch Role ({portalRole})
+              </button>
+
+              <button className="header-bell-icon" style={{ background: 'none', border: 'none', fontSize: '1.25rem', color: '#eab308' }} onClick={() => setCurrentView('notifications')}>
+                🔔
+              </button>
+
+              <div className="header-user-profile">
+                <div>
+                  <div className="header-user-name">{portalRole === 'ADMIN' ? 'David Akinyemi' : 'Moses Ochopelu'}</div>
+                  <div className="header-user-role">{portalRole === 'ADMIN' ? 'Administrator' : 'Student'}</div>
+                </div>
+                <div className="header-avatar-badge">
+                  {portalRole === 'ADMIN' ? 'DA' : 'MG'}
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div className="portal-container">
+            {/* Sidebar */}
+            <aside className="portal-sidebar">
+              <div className="sidebar-portal-title">
+                {portalRole === 'ADMIN' ? 'ADMINISTRATOR PORTAL' : 'STUDENT PORTAL'}
+              </div>
+
+              <div className="sidebar-nav-item">
+                <button className={`sidebar-nav-btn ${currentView === 'overview' ? 'active' : ''}`} onClick={() => setCurrentView('reports')}>
+                  <span className="sidebar-icon">✦</span> Overview
+                </button>
+              </div>
+
+              {portalRole === 'ADMIN' ? (
+                <>
+                  <div className="sidebar-nav-item">
+                    <button className="sidebar-nav-btn" onClick={() => setCurrentView('reports')}>
+                      <span className="sidebar-icon">✦</span> Students
+                    </button>
+                  </div>
+                  <div className="sidebar-nav-item">
+                    <button className={`sidebar-nav-btn ${currentView === 'departments' ? 'active' : ''}`} onClick={() => setCurrentView('departments')}>
+                      <span className="sidebar-icon">✦</span> Departments
+                    </button>
+                  </div>
+                  <div className="sidebar-nav-item">
+                    <button className={`sidebar-nav-btn ${currentView === 'reports' ? 'active' : ''}`} onClick={() => setCurrentView('reports')}>
+                      <span className="sidebar-icon">✦</span> Reports
+                    </button>
+                  </div>
+                  <div className="sidebar-nav-item">
+                    <button className={`sidebar-nav-btn ${currentView === 'notifications' ? 'active' : ''}`} onClick={() => setCurrentView('notifications')}>
+                      <span className="sidebar-icon">✦</span> Notifications
+                    </button>
+                  </div>
+                  <div className="sidebar-nav-item">
+                    <button className={`sidebar-nav-btn ${currentView === 'settings' ? 'active' : ''}`} onClick={() => setCurrentView('settings')}>
+                      <span className="sidebar-icon">✦</span> Settings
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="sidebar-nav-item">
+                    <button className="sidebar-nav-btn" onClick={() => setCurrentView('departments')}>
+                      <span className="sidebar-icon">✦</span> Clearance Request
+                    </button>
+                  </div>
+                  <div className="sidebar-nav-item">
+                    <button className="sidebar-nav-btn" onClick={() => setCurrentView('departments')}>
+                      <span className="sidebar-icon">✦</span> My Progress
+                    </button>
+                  </div>
+                  <div className="sidebar-nav-item">
+                    <button className={`sidebar-nav-btn ${currentView === 'notifications' ? 'active' : ''}`} onClick={() => setCurrentView('notifications')}>
+                      <span className="sidebar-icon">✦</span> Notifications
+                    </button>
+                  </div>
+                  <div className="sidebar-nav-item">
+                    <button className="sidebar-nav-btn" onClick={() => setCurrentView('reports')}>
+                      <span className="sidebar-icon">✦</span> Final Certificate
+                    </button>
+                  </div>
+                </>
+              )}
+
+              <div style={{ marginTop: 'auto', padding: '0 0.85rem' }}>
+                <button className="sidebar-nav-btn" onClick={() => alert('Logged out successfully.')}>
+                  <span>↳</span> Logout
+                </button>
+              </div>
+            </aside>
+
+            {/* Main Content View */}
+            <main className="portal-content">
+              {/* Figure 4.15: System Settings Page */}
+              {currentView === 'settings' && (
+                <div>
+                  <div className="breadcrumb-trail">Home / System Settings</div>
+                  <div className="page-header-row">
+                    <div>
+                      <h1 className="page-main-heading">System Settings</h1>
+                      <p className="page-sub-heading">Configure prototype defaults, notifications and clearance workflow.</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.5rem', alignItems: 'start' }}>
+                    <div className="content-card">
+                      <h2 className="card-heading-title">General Settings</h2>
+                      <div className="toggle-switch-row">
+                        <div>
+                          <div className="toggle-title">Enable new student registration</div>
+                          <div className="toggle-desc">Allow graduating students to create clearance accounts.</div>
+                        </div>
+                        <label className="switch-control">
+                          <input type="checkbox" checked={settings.enableRegistration} onChange={() => setSettings({...settings, enableRegistration: !settings.enableRegistration})} />
+                          <span className="switch-slider"></span>
+                        </label>
+                      </div>
+                      <div className="toggle-switch-row">
+                        <div>
+                          <div className="toggle-title">Email-style in-app notifications</div>
+                          <div className="toggle-desc">Create a notification when an approval decision is recorded.</div>
+                        </div>
+                        <label className="switch-control">
+                          <input type="checkbox" checked={settings.enableEmailNotifications} onChange={() => setSettings({...settings, enableEmailNotifications: !settings.enableEmailNotifications})} />
+                          <span className="switch-slider"></span>
+                        </label>
+                      </div>
+                      <div className="toggle-switch-row">
+                        <div>
+                          <div className="toggle-title">Allow certificate printing</div>
+                          <div className="toggle-desc">Available only after all required units approve the request.</div>
+                        </div>
+                        <label className="switch-control">
+                          <input type="checkbox" checked={settings.allowCertificatePrinting} onChange={() => setSettings({...settings, allowCertificatePrinting: !settings.allowCertificatePrinting})} />
+                          <span className="switch-slider"></span>
+                        </label>
+                      </div>
+                      <div className="toggle-switch-row">
+                        <div>
+                          <div className="toggle-title">Maintenance mode</div>
+                          <div className="toggle-desc">Temporarily prevent non-admin users from accessing the portal.</div>
+                        </div>
+                        <label className="switch-control">
+                          <input type="checkbox" checked={settings.maintenanceMode} onChange={() => setSettings({...settings, maintenanceMode: !settings.maintenanceMode})} />
+                          <span className="switch-slider"></span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="content-card">
+                      <h2 className="card-heading-title">Prototype Information</h2>
+                      <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ fontSize: '0.775rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Institution</label>
+                        <input type="text" value={settings.institution} readOnly />
+                      </div>
+                      <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ fontSize: '0.775rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Academic Session</label>
+                        <input type="text" value={settings.academicSession} readOnly />
+                      </div>
+                      <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ fontSize: '0.775rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Storage Mode</label>
+                        <input type="text" value={settings.storageMode} readOnly />
+                      </div>
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ fontSize: '0.775rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Session Timeout</label>
+                        <select value={settings.sessionTimeout} onChange={(e) => setSettings({...settings, sessionTimeout: e.target.value})}>
+                          <option value="30 minutes">30 minutes</option>
+                          <option value="1 hour">1 hour</option>
+                        </select>
+                      </div>
+                      <button className="btn-pill-maroon" style={{ width: '100%', padding: '0.65rem' }} onClick={() => alert('Settings saved successfully.')}>
+                        Save Settings
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Figure 4.14: Department Management Page */}
+              {currentView === 'departments' && (
+                <div>
+                  <div className="breadcrumb-trail">Home / Department Management</div>
+                  <div className="page-header-row">
+                    <div>
+                      <h1 className="page-main-heading">Department Management</h1>
+                      <p className="page-sub-heading">Configure clearance units and officers responsible for graduate clearance.</p>
+                    </div>
+                    <button className="btn-pill-maroon" onClick={() => alert('Add Department clicked')}>
+                      Add Department
+                    </button>
+                  </div>
+
+                  <div className="content-card">
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.25rem' }}>
+                      <select style={{ width: '180px' }}>
+                        <option>All Units</option>
+                      </select>
+                    </div>
+
+                    <div className="eksu-table-container">
+                      <table className="eksu-table">
+                        <thead>
+                          <tr>
+                            <th>CLEARANCE UNIT</th>
+                            <th>ASSIGNED OFFICER</th>
+                            <th>EMAIL</th>
+                            <th>PENDING</th>
+                            <th>STATUS</th>
+                            <th style={{ textAlign: 'center' }}>ACTION</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {departments.map((d, i) => (
+                            <tr key={i}>
+                              <td>
+                                <div style={{ fontWeight: '600' }}>{d.name}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{d.desc}</div>
+                              </td>
+                              <td>{d.officer}</td>
+                              <td style={{ color: 'var(--text-muted)' }}>{d.email}</td>
+                              <td>{d.pending}</td>
+                              <td><span className="badge-active-pill">{d.status}</span></td>
+                              <td style={{ textAlign: 'center' }}>
+                                <button className="btn-pill-outline" onClick={() => alert(`Manage ${d.name}`)}>Manage</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Figure 4.12: Administrator Reports Page */}
+              {currentView === 'reports' && (
+                <div>
+                  <div className="breadcrumb-trail">Home / Reports</div>
+                  <div className="page-header-row">
+                    <div>
+                      <h1 className="page-main-heading">Reports</h1>
+                      <p className="page-sub-heading">Generate, filter and review clearance activity reports.</p>
+                    </div>
+                    <button className="btn-pill-maroon" onClick={() => alert('Exporting CSV...')}>
+                      Export CSV
+                    </button>
+                  </div>
+
+                  <div className="content-card">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                      <div>
+                        <label style={{ fontSize: '0.775rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Report Type</label>
+                        <select><option>Clearance Status Summary</option></select>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.775rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Academic Session</label>
+                        <select><option>2025/2026</option></select>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.775rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Department</label>
+                        <select><option>All Departments</option></select>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.775rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Status</label>
+                        <select><option>All Statuses</option></select>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1.5rem', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.85rem', textDecoration: 'underline', cursor: 'pointer' }}>Reset Filters</span>
+                      <button className="btn-pill-maroon">Generate Report</button>
+                    </div>
+                  </div>
+
+                  <div className="stat-cards-grid">
+                    <div className="stat-metric-card">
+                      <div className="stat-metric-label">TOTAL REQUESTS</div>
+                      <div className="stat-metric-number">1,067</div>
+                    </div>
+                    <div className="stat-metric-card">
+                      <div className="stat-metric-label">APPROVED</div>
+                      <div className="stat-metric-number">728</div>
+                    </div>
+                    <div className="stat-metric-card">
+                      <div className="stat-metric-label">PENDING</div>
+                      <div className="stat-metric-number">213</div>
+                    </div>
+                    <div className="stat-metric-card">
+                      <div className="stat-metric-label">REJECTED</div>
+                      <div className="stat-metric-number">126</div>
+                    </div>
+                  </div>
+
+                  <div className="content-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                      <h2 className="card-heading-title" style={{ margin: 0 }}>Department Clearance Summary</h2>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Generated 20 Apr 2026</span>
+                    </div>
+                    <div className="eksu-table-container">
+                      <table className="eksu-table">
+                        <thead>
+                          <tr>
+                            <th>DEPARTMENT</th><th>REGISTERED</th><th>SUBMITTED</th><th>FULLY CLEARED</th><th>PENDING</th><th>COMPLETION</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr><td>Computer Science</td><td>142</td><td>131</td><td>96</td><td>35</td><td style={{ fontWeight: 600 }}>73%</td></tr>
+                          <tr><td>Geology</td><td>88</td><td>79</td><td>54</td><td>25</td><td style={{ fontWeight: 600 }}>68%</td></tr>
+                          <tr><td>Physics</td><td>104</td><td>91</td><td>63</td><td>28</td><td style={{ fontWeight: 600 }}>69%</td></tr>
+                          <tr><td>Chemistry</td><td>119</td><td>105</td><td>76</td><td>29</td><td style={{ fontWeight: 600 }}>72%</td></tr>
+                          <tr><td>Mathematics</td><td>97</td><td>84</td><td>61</td><td>23</td><td style={{ fontWeight: 600 }}>73%</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Figure 4.11: Notification Page */}
+              {currentView === 'notifications' && (
+                <div>
+                  <div className="breadcrumb-trail">Home / Notifications</div>
+                  <div className="page-header-row">
+                    <div>
+                      <h1 className="page-main-heading">Notifications</h1>
+                      <p className="page-sub-heading">Updates generated by clearance activities and account actions.</p>
+                    </div>
+                    <button className="btn-pill-outline" onClick={() => alert('All marked as read')}>
+                      Mark all as read
+                    </button>
+                  </div>
+
+                  <div>
+                    {notifications.map((n, idx) => (
+                      <div key={idx} className="notification-card-item">
+                        <div className="notification-left">
+                          <div className="notification-icon-box">{n.icon}</div>
+                          <div>
+                            <div className="notification-title">{n.title}</div>
+                            <div className="notification-text">{n.text}</div>
+                          </div>
+                        </div>
+                        <div className="notification-timestamp">{n.time}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
