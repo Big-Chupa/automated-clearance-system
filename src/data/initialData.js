@@ -121,7 +121,7 @@ export const INITIAL_USERS = [
     phone: '08054321987',
     status: 'ACTIVE'
   },
-  // Student
+  // Students
   {
     id: 'usr-stud-1',
     matricNo: 'EKSU/CSC/22/0063',
@@ -135,6 +135,51 @@ export const INITIAL_USERS = [
     graduationYear: '2025/2026',
     degree: 'B.Sc. (Hons) Computer Science',
     phone: '08167890123',
+    status: 'ACTIVE'
+  },
+  {
+    id: 'usr-stud-2',
+    matricNo: 'EKSU/CSC/22/0088',
+    fullName: 'Amina Zainab Yusuf',
+    email: 'amina.yusuf@eksu.edu.ng',
+    password: 'password123',
+    role: 'STUDENT',
+    initials: 'AY',
+    departmentName: 'Computer Science',
+    faculty: 'Science',
+    graduationYear: '2025/2026',
+    degree: 'B.Sc. (Hons) Computer Science',
+    phone: '08034567891',
+    status: 'ACTIVE'
+  },
+  {
+    id: 'usr-stud-3',
+    matricNo: 'EKSU/MTH/22/0112',
+    fullName: 'Oluwaseun Emmanuel Adeleke',
+    email: 'seun.adeleke@eksu.edu.ng',
+    password: 'password123',
+    role: 'STUDENT',
+    initials: 'OA',
+    departmentName: 'Mathematics',
+    faculty: 'Science',
+    graduationYear: '2025/2026',
+    degree: 'B.Sc. (Hons) Mathematics',
+    phone: '08098765432',
+    status: 'ACTIVE'
+  },
+  {
+    id: 'usr-stud-4',
+    matricNo: 'EKSU/GEO/22/0045',
+    fullName: 'Blessing Chioma Okon',
+    email: 'blessing.okon@eksu.edu.ng',
+    password: 'password123',
+    role: 'STUDENT',
+    initials: 'BO',
+    departmentName: 'Geology',
+    faculty: 'Science',
+    graduationYear: '2025/2026',
+    degree: 'B.Sc. (Hons) Geology',
+    phone: '08123456780',
     status: 'ACTIVE'
   }
 ];
@@ -152,6 +197,10 @@ export const INITIAL_CLEARANCE_REQUESTS = [
     overallStatus: 'APPROVED',
     completionPercentage: 100,
     certificateNumber: 'EKSU/2026/CLR/0063',
+    documents: [
+      { id: 'doc-101', type: 'Bursary School Fees & Convocation Receipt', name: 'EKSU_Bursary_Receipt_0063.pdf', size: '245 KB', uploadedAt: '2026-04-15T09:20:00.000Z' },
+      { id: 'doc-102', type: 'Departmental Project Approval Sheet', name: 'Project_Approval_Signed.pdf', size: '180 KB', uploadedAt: '2026-04-15T09:25:00.000Z' }
+    ],
     departments: {
       DEPARTMENT: { status: 'APPROVED', date: '2026-04-15T11:00:00.000Z', officer: 'Dr. T. Ogunleye', comments: 'Departmental project submitted and approved.' },
       FACULTY: { status: 'APPROVED', date: '2026-04-16T14:05:00.000Z', officer: 'Mrs. R. Akande', comments: 'Faculty results verified and endorsed.' },

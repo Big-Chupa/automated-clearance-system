@@ -22,8 +22,12 @@ export const ClearanceProvider = ({ children }) => {
     setAuditLogs(allLogs);
 
     if (currentUser && currentUser.role === 'STUDENT') {
-      const studentReq = allReqs.find(r => r.studentId === currentUser.id);
-      setMyRequest(studentReq || null);
+      let studentReq = allReqs.find(r => r.studentId === currentUser.id);
+      if (!studentReq) {
+        // Automatically ensure a clearance request container exists for the student
+        studentReq = storageService.createClearanceRequest(currentUser);
+      }
+      setMyRequest(studentReq);
     }
     setLoading(false);
   }, [currentUser]);
@@ -38,33 +42,19 @@ export const ClearanceProvider = ({ children }) => {
       throw new Error('Only registered students can apply for clearance.');
     }
 
-    if (myRequest) {
-      throw new Error('A clearance application has already been submitted for this account.');
-    }
-
-    const depts = storageService.getDepartments();
-    const deptMap = {};
-    depts.forEach(d => {
-      deptMap[d.code] = {
-        status: 'PENDING',
-        date: null,
-        officer: null,
-        comments: ''
-      };
-    });
-
-    const newReq = storageService.createClearanceRequest(currentUser, deptMap);
+    const newReq = storageService.createClearanceRequest(currentUser);
     refreshData();
     return newReq;
   };
 
   // Student uploads document
   const uploadDocument = (docType, docName, docBase64, fileSize) => {
-    if (!myRequest) {
-      throw new Error('Please initiate a clearance application before uploading documents.');
+    let req = myRequest;
+    if (!req && currentUser) {
+      req = storageService.createClearanceRequest(currentUser);
     }
 
-    const updated = storageService.uploadStudentDocument(myRequest.id, docType, docName, docBase64, fileSize);
+    const updated = storageService.uploadStudentDocument(req.id, docType, docName, docBase64, fileSize);
     refreshData();
     return updated;
   };
@@ -73,6 +63,14 @@ export const ClearanceProvider = ({ children }) => {
   const deleteDocument = (docId) => {
     if (!myRequest) return;
     const updated = storageService.deleteStudentDocument(myRequest.id, docId);
+    refreshData();
+    return updated;
+  };
+
+  // Fast Automated Clearance Verification Engine
+  const runAutomatedVerification = () => {
+    if (!myRequest) return null;
+    const updated = storageService.completeAllDepartmentClearances(myRequest.id);
     refreshData();
     return updated;
   };
@@ -125,6 +123,7 @@ export const ClearanceProvider = ({ children }) => {
     submitClearanceApplication,
     uploadDocument,
     deleteDocument,
+    runAutomatedVerification,
     updateDepartmentStatus,
     adminOverrideStatus
   };

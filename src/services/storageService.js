@@ -98,8 +98,11 @@ export const storageService = {
 
   createClearanceRequest(student, initialDeptMap) {
     const requests = this.getClearanceRequests();
+    const existing = requests.find(r => r.studentId === student.id);
+    if (existing) return existing;
+
     const newRequest = {
-      id: `clr-req-${Date.now()}`,
+      id: `clr-req-${student.matricNo.replace(/[^a-zA-Z0-9]/g, '')}`,
       studentId: student.id,
       matricNo: student.matricNo,
       studentName: student.fullName,
@@ -111,7 +114,14 @@ export const storageService = {
       completionPercentage: 0,
       certificateNumber: null,
       documents: [],
-      departments: initialDeptMap
+      departments: initialDeptMap || {
+        DEPARTMENT: { status: 'PENDING', date: null, officer: 'Dr. T. Ogunleye', comments: '' },
+        FACULTY: { status: 'PENDING', date: null, officer: 'Mrs. R. Akande', comments: '' },
+        LIBRARY: { status: 'PENDING', date: null, officer: 'Mrs. Funmi Adeyemi', comments: '' },
+        BURSARY: { status: 'PENDING', date: null, officer: 'Mr. K. Ojo', comments: '' },
+        STUDENT_AFFAIRS: { status: 'PENDING', date: null, officer: 'Mrs. A. Faleye', comments: '' },
+        REGISTRY: { status: 'PENDING', date: null, officer: 'Mr. P. Adebayo', comments: '' }
+      }
     };
     requests.push(newRequest);
     localStorage.setItem(STORAGE_KEYS.REQUESTS, JSON.stringify(requests));
@@ -136,7 +146,6 @@ export const storageService = {
     const request = requests[reqIndex];
     if (!request.documents) request.documents = [];
 
-    // Check if document of this type already exists, replace or append
     const existingIdx = request.documents.findIndex(d => d.type === docType);
     const newDoc = {
       id: `doc-${Date.now()}`,
@@ -224,6 +233,55 @@ export const storageService = {
       `STATUS_${newStatus}`,
       `Department ${deptCode} marked status as ${newStatus} for ${request.studentName}`
     );
+
+    return request;
+  },
+
+  // AUTOMATED MULTI-DEPARTMENT CLEARANCE VERIFICATION SIMULATOR
+  completeAllDepartmentClearances(requestId) {
+    const requests = this.getClearanceRequests();
+    const reqIndex = requests.findIndex(r => r.id === requestId);
+    if (reqIndex === -1) return null;
+
+    const request = requests[reqIndex];
+    const now = new Date().toISOString();
+
+    request.departments = {
+      BURSARY: { status: 'APPROVED', date: now, officer: 'Mr. K. Ojo', comments: 'Receipt verified and confirmed paid.' },
+      LIBRARY: { status: 'APPROVED', date: now, officer: 'Mrs. Funmi Adeyemi', comments: 'Zero outstanding library books.' },
+      DEPARTMENT: { status: 'APPROVED', date: now, officer: 'Dr. T. Ogunleye', comments: 'Final year project and dues approved.' },
+      FACULTY: { status: 'APPROVED', date: now, officer: 'Mrs. R. Akande', comments: 'Academic standing verified and cleared.' },
+      STUDENT_AFFAIRS: { status: 'APPROVED', date: now, officer: 'Mrs. A. Faleye', comments: 'No disciplinary hold found.' },
+      REGISTRY: { status: 'APPROVED', date: now, officer: 'Mr. P. Adebayo', comments: 'Final clearance endorsed and certified.' }
+    };
+
+    request.completionPercentage = 100;
+    request.overallStatus = 'APPROVED';
+    request.certificateNumber = `EKSU/${new Date().getFullYear()}/CLR/${request.matricNo.replace(/[^a-zA-Z0-9]/g, '').slice(-4)}`;
+
+    requests[reqIndex] = request;
+    localStorage.setItem(STORAGE_KEYS.REQUESTS, JSON.stringify(requests));
+
+    this.addAuditLog(
+      request.studentId,
+      'SYSTEM',
+      'Automated Clearance Engine',
+      'CLEARANCE_COMPLETED',
+      `Full 100% clearance achieved for ${request.studentName} (${request.matricNo})`
+    );
+
+    // Add celebration notification
+    const notifs = this.getNotifications();
+    notifs.unshift({
+      id: `notif-complete-${Date.now()}`,
+      title: '🎉 Clearance Fully Approved!',
+      text: `Congratulations ${request.studentName}! All 6 clearance units have verified and approved your graduation clearance. You may now print your certificate.`,
+      timestamp: 'Just now',
+      type: 'success',
+      icon: '🎓',
+      read: false
+    });
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifs));
 
     return request;
   },

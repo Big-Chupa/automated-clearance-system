@@ -1,14 +1,22 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useClearance } from '../context/ClearanceContext';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
 
 const CertificatePage = () => {
   const { currentUser } = useAuth();
+  const { myRequest } = useClearance();
 
   const handlePrint = () => {
     window.print();
   };
+
+  const studentName = myRequest?.studentName || currentUser?.fullName || 'MOSES OCHOPELU';
+  const matricNo = myRequest?.matricNo || currentUser?.matricNo || 'EKSU/CSC/22/0063';
+  const departmentName = myRequest?.departmentName || currentUser?.departmentName || 'Computer Science';
+  const faculty = myRequest?.faculty || currentUser?.faculty || 'Science';
+  const certNumber = myRequest?.certificateNumber || `EKSU/2026/CLR/${matricNo.replace(/[^a-zA-Z0-9]/g, '').slice(-4)}`;
 
   return (
     <div className="app-layout">
@@ -67,7 +75,7 @@ const CertificatePage = () => {
               </p>
 
               <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#701a2b', textDecoration: 'underline', textUnderlineOffset: '4px', marginBottom: '1.25rem' }}>
-                {currentUser?.fullName || 'MOSES OCHOPELU'}
+                {studentName.toUpperCase()}
               </div>
 
               <div style={{
@@ -83,12 +91,12 @@ const CertificatePage = () => {
                 border: '1px solid #e2e8f0',
                 fontSize: '0.85rem'
               }}>
-                <div><strong>Matriculation No:</strong> {currentUser?.matricNo || 'EKSU/CSC/22/0063'}</div>
+                <div><strong>Matriculation No:</strong> {matricNo}</div>
                 <div><strong>Graduation Session:</strong> 2025/2026</div>
-                <div><strong>Department:</strong> {currentUser?.departmentName || 'Computer Science'}</div>
-                <div><strong>Faculty:</strong> {currentUser?.faculty || 'Science'}</div>
-                <div><strong>Certificate No:</strong> EKSU/2026/CLR/0063</div>
-                <div><strong>Verification Status:</strong> FULLY CLEARED</div>
+                <div><strong>Department:</strong> {departmentName}</div>
+                <div><strong>Faculty:</strong> {faculty}</div>
+                <div><strong>Certificate No:</strong> {certNumber}</div>
+                <div><strong>Verification Status:</strong> <span style={{ color: '#16a34a', fontWeight: 700 }}>FULLY CLEARED</span></div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', padding: '0 1rem', flexWrap: 'wrap', gap: '1.5rem' }}>
