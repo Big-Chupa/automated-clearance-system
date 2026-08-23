@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { storageService } from '../services/storageService';
 import { Alert } from '../components/common/CommonComponents';
 
 const DEMO_STUDENTS = [
-  { name: 'Moses Ochopelu (Cleared)', matric: 'EKSU/CSC/22/0063', dept: 'Computer Science' },
   { name: 'Amina Yusuf (Fresh Demo)', matric: 'EKSU/CSC/22/0088', dept: 'Computer Science' },
   { name: 'Oluwaseun Adeleke (Fresh Demo)', matric: 'EKSU/MTH/22/0112', dept: 'Mathematics' },
-  { name: 'Blessing Okon (Fresh Demo)', matric: 'EKSU/GEO/22/0045', dept: 'Geology' }
+  { name: 'Blessing Okon (Fresh Demo)', matric: 'EKSU/GEO/22/0045', dept: 'Geology' },
+  { name: 'Moses Ochopelu (Cleared)', matric: 'EKSU/CSC/22/0063', dept: 'Computer Science' }
 ];
 
 const LoginPage = () => {
@@ -16,6 +17,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('password123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -36,8 +38,31 @@ const LoginPage = () => {
   };
 
   const handleSelectStudent = (matric) => {
+    setRole('STUDENT');
     setIdentifier(matric);
     setPassword('password123');
+    setError('');
+  };
+
+  const handleQuickLogin = (matric) => {
+    setError('');
+    try {
+      setLoading(true);
+      const user = login(matric, 'password123', 'STUDENT');
+      navigate('/student/dashboard');
+    } catch (err) {
+      setError(err.message || 'Authentication error.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetCache = () => {
+    storageService.resetDatabase();
+    setResetSuccess(true);
+    setIdentifier('EKSU/CSC/22/0088');
+    setPassword('password123');
+    setTimeout(() => setResetSuccess(false), 3000);
   };
 
   const handleSubmit = (e) => {
@@ -76,7 +101,7 @@ const LoginPage = () => {
         borderRadius: '12px',
         boxShadow: 'var(--shadow-lg)',
         width: '100%',
-        maxWidth: '460px',
+        maxWidth: '470px',
         padding: '2.25rem 2rem',
         border: '1px solid var(--border-color)'
       }}>
@@ -137,31 +162,41 @@ const LoginPage = () => {
         {/* Quick Student Selector Chips */}
         {role === 'STUDENT' && (
           <div style={{ marginBottom: '1.25rem', backgroundColor: '#fdf2f4', padding: '0.75rem', borderRadius: '8px', border: '1px solid #fce7eb' }}>
-            <div style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary-color)', marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-              Select Student Demo Profile:
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary-color)', textTransform: 'uppercase' }}>
+                Click to Auto-Login Student:
+              </span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
               {DEMO_STUDENTS.map((s, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => handleSelectStudent(s.matric)}
+                  onClick={() => handleQuickLogin(s.matric)}
                   style={{
                     textAlign: 'left',
-                    padding: '0.4rem 0.5rem',
+                    padding: '0.45rem 0.55rem',
                     fontSize: '0.725rem',
                     borderRadius: '5px',
                     border: identifier === s.matric ? '1px solid var(--primary-color)' : '1px solid #e2e8f0',
                     backgroundColor: identifier === s.matric ? '#ffffff' : '#f8fafc',
                     fontWeight: identifier === s.matric ? 700 : 500,
-                    color: identifier === s.matric ? 'var(--primary-color)' : 'var(--text-main)'
+                    color: identifier === s.matric ? 'var(--primary-color)' : 'var(--text-main)',
+                    cursor: 'pointer'
                   }}
+                  title="Click to sign in instantly"
                 >
-                  <div>{s.name}</div>
+                  <div style={{ fontWeight: 600 }}>{s.name}</div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{s.matric}</div>
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {resetSuccess && (
+          <div style={{ backgroundColor: '#ecfdf5', color: '#065f46', padding: '0.5rem', borderRadius: '6px', fontSize: '0.775rem', marginBottom: '0.75rem', textAlign: 'center' }}>
+            ✓ Browser database synchronized and reloaded with all 4 student demo accounts.
           </div>
         )}
 
@@ -203,14 +238,18 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <div style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
-          {role === 'STUDENT' ? (
-            <p>
-              New graduating student? <Link to="/register" style={{ fontWeight: '600' }}>Register for Clearance</Link>
-            </p>
-          ) : (
-            <p>Portal access is restricted to authorized EKSU personnel.</p>
-          )}
+        <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
+          <button
+            type="button"
+            onClick={handleResetCache}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.75rem' }}
+          >
+            🔄 Sync / Reset Demo Cache
+          </button>
+
+          <Link to="/register" style={{ fontWeight: '600', color: 'var(--primary-color)' }}>
+            Register New Student
+          </Link>
         </div>
       </div>
     </div>

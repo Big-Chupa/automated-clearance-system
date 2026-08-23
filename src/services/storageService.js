@@ -42,29 +42,42 @@ export const storageService = {
     if (!localStorage.getItem(STORAGE_KEYS.DEPT_STATS)) {
       localStorage.setItem(STORAGE_KEYS.DEPT_STATS, JSON.stringify(INITIAL_DEPARTMENT_STATS));
     }
+
+    // Force self-healing merge of any missing users into localStorage
+    try {
+      let storedUsers = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+      let updated = false;
+      INITIAL_USERS.forEach(su => {
+        if (!storedUsers.some(u => (u.matricNo && su.matricNo && u.matricNo.toLowerCase() === su.matricNo.toLowerCase()) || (u.email && su.email && u.email.toLowerCase() === su.email.toLowerCase()))) {
+          storedUsers.push(su);
+          updated = true;
+        }
+      });
+      if (updated) {
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(storedUsers));
+      }
+    } catch (e) {
+      console.warn('Storage sync error', e);
+    }
   },
 
-  // USERS - with automatic self-healing sync of initial seed accounts
+  resetDatabase() {
+    localStorage.removeItem(STORAGE_KEYS.USERS);
+    localStorage.removeItem(STORAGE_KEYS.DEPARTMENTS);
+    localStorage.removeItem(STORAGE_KEYS.REQUESTS);
+    localStorage.removeItem(STORAGE_KEYS.AUDIT_LOGS);
+    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
+    localStorage.removeItem(STORAGE_KEYS.SETTINGS);
+    localStorage.removeItem(STORAGE_KEYS.DEPT_STATS);
+    localStorage.removeItem(STORAGE_KEYS.SESSION);
+    sessionStorage.clear();
+    this.init();
+  },
+
+  // USERS
   getUsers() {
     this.init();
-    let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
-    let modified = false;
-
-    INITIAL_USERS.forEach(seedUser => {
-      const exists = users.some(u => 
-        (u.matricNo && seedUser.matricNo && u.matricNo.toLowerCase() === seedUser.matricNo.toLowerCase()) ||
-        (u.email && seedUser.email && u.email.toLowerCase() === seedUser.email.toLowerCase())
-      );
-      if (!exists) {
-        users.push(seedUser);
-        modified = true;
-      }
-    });
-
-    if (modified) {
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-    }
-    return users;
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || JSON.stringify(INITIAL_USERS));
   },
 
   saveUser(newUser) {
@@ -85,21 +98,7 @@ export const storageService = {
   // DEPARTMENTS
   getDepartments() {
     this.init();
-    let depts = JSON.parse(localStorage.getItem(STORAGE_KEYS.DEPARTMENTS) || '[]');
-    let modified = false;
-
-    INITIAL_DEPARTMENTS.forEach(seedDept => {
-      const exists = depts.some(d => d.code === seedDept.code);
-      if (!exists) {
-        depts.push(seedDept);
-        modified = true;
-      }
-    });
-
-    if (modified) {
-      localStorage.setItem(STORAGE_KEYS.DEPARTMENTS, JSON.stringify(depts));
-    }
-    return depts;
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.DEPARTMENTS) || JSON.stringify(INITIAL_DEPARTMENTS));
   },
 
   saveDepartment(dept) {
@@ -119,7 +118,7 @@ export const storageService = {
   // CLEARANCE REQUESTS
   getClearanceRequests() {
     this.init();
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.REQUESTS) || '[]');
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.REQUESTS) || JSON.stringify(INITIAL_CLEARANCE_REQUESTS));
   },
 
   getClearanceRequestByStudentId(studentId) {
