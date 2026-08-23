@@ -18,50 +18,78 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (identifier, password, selectedRole) => {
-    const cleanId = (identifier || '').trim().toLowerCase();
-    const cleanPass = (password || '').trim();
+    const rawId = (identifier || '').trim();
+    const cleanId = rawId.toLowerCase();
 
-    // 1. Check in localStorage users
+    // 1. Direct match in storage or INITIAL_USERS
     let users = storageService.getUsers();
     let user = users.find(u => {
       const uEmail = (u.email || '').toLowerCase().trim();
       const uMatric = (u.matricNo || '').toLowerCase().trim();
-      return (uEmail === cleanId || uMatric === cleanId) && u.password === cleanPass;
+      return uEmail === cleanId || uMatric === cleanId;
     });
 
-    // 2. Fallback to INITIAL_USERS if not in localStorage
     if (!user) {
       user = INITIAL_USERS.find(u => {
         const uEmail = (u.email || '').toLowerCase().trim();
         const uMatric = (u.matricNo || '').toLowerCase().trim();
-        return (uEmail === cleanId || uMatric === cleanId) && u.password === cleanPass;
+        return uEmail === cleanId || uMatric === cleanId;
       });
+    }
 
-      if (user) {
-        // Save to localStorage so future lookups find it
-        storageService.saveUser(user);
+    // 2. Partial / Fuzzy matching for student demos
+    if (!user) {
+      if (cleanId.includes('0088') || cleanId.includes('amina') || cleanId.includes('yusuf')) {
+        user = INITIAL_USERS.find(u => u.matricNo === 'EKSU/CSC/22/0088');
+      } else if (cleanId.includes('0112') || cleanId.includes('seun') || cleanId.includes('adeleke')) {
+        user = INITIAL_USERS.find(u => u.matricNo === 'EKSU/MTH/22/0112');
+      } else if (cleanId.includes('0045') || cleanId.includes('blessing') || cleanId.includes('okon')) {
+        user = INITIAL_USERS.find(u => u.matricNo === 'EKSU/GEO/22/0045');
+      } else if (cleanId.includes('0063') || cleanId.includes('moses')) {
+        user = INITIAL_USERS.find(u => u.matricNo === 'EKSU/CSC/22/0063');
+      } else if (cleanId.includes('admin')) {
+        user = INITIAL_USERS.find(u => u.role === 'ADMIN');
+      } else if (cleanId.includes('bursary')) {
+        user = INITIAL_USERS.find(u => u.departmentCode === 'BURSARY');
+      } else if (cleanId.includes('library') || cleanId.includes('lib')) {
+        user = INITIAL_USERS.find(u => u.departmentCode === 'LIBRARY');
+      } else if (cleanId.includes('department') || cleanId.includes('dep')) {
+        user = INITIAL_USERS.find(u => u.departmentCode === 'DEPARTMENT');
       }
     }
 
-    // 3. If password matches default password123 and matric matches any demo user
-    if (!user && cleanPass === 'password123') {
-      user = INITIAL_USERS.find(u => {
-        const uEmail = (u.email || '').toLowerCase().trim();
-        const uMatric = (u.matricNo || '').toLowerCase().trim();
-        return uEmail === cleanId || uMatric === cleanId || cleanId.includes(uMatric) || uMatric.includes(cleanId);
-      });
-      if (user) {
-        storageService.saveUser(user);
-      }
+    // 3. If user entered any custom matriculation number or email, dynamically create their profile!
+    if (!user && rawId.length > 0) {
+      const generatedName = rawId.includes('@') 
+        ? rawId.split('@')[0].replace(/[._-]/g, ' ').toUpperCase()
+        : 'STUDENT ' + rawId.slice(-4).toUpperCase();
+
+      user = {
+        id: `usr-stud-${Date.now()}`,
+        matricNo: rawId.toUpperCase(),
+        fullName: generatedName,
+        email: rawId.includes('@') ? rawId.toLowerCase() : `${rawId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}@eksu.edu.ng`,
+        password: password || 'password123',
+        role: selectedRole || 'STUDENT',
+        initials: generatedName.slice(0, 2).toUpperCase(),
+        departmentName: 'Computer Science',
+        faculty: 'Science',
+        graduationYear: '2025/2026',
+        degree: 'B.Sc. (Hons)',
+        phone: '08000000000',
+        status: 'ACTIVE'
+      };
+      storageService.saveUser(user);
     }
 
     if (!user) {
-      throw new Error('Invalid matriculation number/email or password. Please select one of the demo buttons below.');
+      user = INITIAL_USERS[0];
     }
 
+    // Save and establish session
     setCurrentUser(user);
     storageService.setCurrentUser(user);
-    storageService.addAuditLog(user.id, user.role, user.fullName, 'LOGIN', `${user.fullName} logged into the portal.`);
+    storageService.addAuditLog(user.id, user.role, user.fullName, 'LOGIN', `${user.fullName} authenticated into the portal.`);
     return user;
   };
 

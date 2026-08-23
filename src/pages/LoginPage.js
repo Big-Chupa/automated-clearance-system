@@ -37,13 +37,6 @@ const LoginPage = () => {
     }
   };
 
-  const handleSelectStudent = (matric) => {
-    setRole('STUDENT');
-    setIdentifier(matric);
-    setPassword('password123');
-    setError('');
-  };
-
   const handleQuickLogin = (matric) => {
     setError('');
     try {
@@ -164,7 +157,7 @@ const LoginPage = () => {
           <div style={{ marginBottom: '1.25rem', backgroundColor: '#fdf2f4', padding: '0.75rem', borderRadius: '8px', border: '1px solid #fce7eb' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
               <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary-color)', textTransform: 'uppercase' }}>
-                Click to Auto-Login Student:
+                Instant 1-Click Student Login:
               </span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
@@ -178,15 +171,15 @@ const LoginPage = () => {
                     padding: '0.45rem 0.55rem',
                     fontSize: '0.725rem',
                     borderRadius: '5px',
-                    border: identifier === s.matric ? '1px solid var(--primary-color)' : '1px solid #e2e8f0',
-                    backgroundColor: identifier === s.matric ? '#ffffff' : '#f8fafc',
-                    fontWeight: identifier === s.matric ? 700 : 500,
-                    color: identifier === s.matric ? 'var(--primary-color)' : 'var(--text-main)',
-                    cursor: 'pointer'
+                    border: '1px solid #e2e8f0',
+                    backgroundColor: '#ffffff',
+                    color: 'var(--primary-color)',
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                   }}
                   title="Click to sign in instantly"
                 >
-                  <div style={{ fontWeight: 600 }}>{s.name}</div>
+                  <div style={{ fontWeight: 700 }}>{s.name}</div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{s.matric}</div>
                 </button>
               ))}
@@ -211,6 +204,7 @@ const LoginPage = () => {
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="e.g. EKSU/CSC/22/0088 or amina"
               required
             />
           </div>
