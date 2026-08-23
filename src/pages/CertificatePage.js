@@ -1,13 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useClearance } from '../context/ClearanceContext';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
 
 const CertificatePage = () => {
   const { currentUser } = useAuth();
-  const { myRequest } = useClearance();
 
   const handlePrint = () => {
     window.print();
