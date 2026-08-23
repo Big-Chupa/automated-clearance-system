@@ -18,12 +18,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = (identifier, password, selectedRole) => {
     const users = storageService.getUsers();
-    const cleanId = identifier.trim().toLowerCase();
+    const cleanId = (identifier || '').trim().toLowerCase();
     
-    const user = users.find(u => 
-      (u.email.toLowerCase() === cleanId || u.matricNo.toLowerCase() === cleanId) &&
-      u.password === password
-    );
+    const user = users.find(u => {
+      const uEmail = (u.email || '').toLowerCase().trim();
+      const uMatric = (u.matricNo || '').toLowerCase().trim();
+      return (uEmail === cleanId || uMatric === cleanId) && u.password === password;
+    });
 
     if (!user) {
       throw new Error('Invalid matriculation number/email or password.');
