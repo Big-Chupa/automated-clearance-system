@@ -35,7 +35,7 @@ const RegisterPage = () => {
     setError('');
 
     if (!validateMatricNo(formData.matricNo)) {
-      setError('Please provide a valid matriculation number (e.g. FCP/CSC/19/2045).');
+      setError('Please provide a valid matriculation number (e.g. 220903067).');
       return;
     }
 
@@ -98,7 +98,7 @@ const RegisterPage = () => {
                 name="matricNo"
                 value={formData.matricNo}
                 onChange={handleChange}
-                placeholder="e.g. FCP/CSC/19/2045"
+                placeholder="e.g. 220903067"
                 required
               />
             </div>

@@ -93,7 +93,7 @@ automated-clearance-system/
 | Role | Identifier | Password | Access Rights |
 | :--- | :--- | :--- | :--- |
 | **Administrator** | `admin@eksu.edu.ng` | `password123` | System Settings, Department Management, Analytics Reports, Audit Logs |
-| **Student** | `EKSU/CSC/22/0063` | `password123` | Clearance Application, Document Upload, Progress Tracking, Certificate |
+| **Student** | `220903067` | `password123` | Clearance Application, Document Upload, Progress Tracking, Certificate |
 | **Bursary Officer** | `bursary@eksu.edu.ng` | `password123` | Financial Review, Document Verification, Endorsements |
 | **Library Officer** | `library@eksu.edu.ng` | `password123` | Book Return Verification, Library Approval |
 

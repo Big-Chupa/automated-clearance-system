@@ -32,7 +32,7 @@ const StudentDashboard = () => {
             <div>
               <h1 className="page-main-heading">Student Clearance Overview</h1>
               <p className="page-sub-heading">
-                Welcome back, {currentUser?.fullName} ({currentUser?.matricNo || 'EKSU/CSC/22/0063'})
+                Welcome back, {currentUser?.fullName} ({currentUser?.matricNo || '220903067'})
               </p>
             </div>
             {myRequest?.overallStatus === 'APPROVED' ? (
@@ -46,7 +46,7 @@ const StudentDashboard = () => {
           <div className="content-card">
             <h2 className="card-heading-title">Academic Clearance Profile</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', fontSize: '0.875rem' }}>
-              <div><span style={{ color: 'var(--text-muted)' }}>Matriculation No:</span> <strong>{currentUser?.matricNo || 'EKSU/CSC/22/0063'}</strong></div>
+              <div><span style={{ color: 'var(--text-muted)' }}>Matriculation No:</span> <strong>{currentUser?.matricNo || '220903067'}</strong></div>
               <div><span style={{ color: 'var(--text-muted)' }}>Department:</span> <strong>{currentUser?.departmentName || 'Computer Science'}</strong></div>
               <div><span style={{ color: 'var(--text-muted)' }}>Faculty:</span> <strong>{currentUser?.faculty || 'Science'}</strong></div>
               <div><span style={{ color: 'var(--text-muted)' }}>Academic Session:</span> <strong>2025/2026</strong></div>

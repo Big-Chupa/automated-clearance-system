@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     storageService.init();
     const stored = storageService.getCurrentUser();
-    if (stored) {
+    if (stored && stored.role !== 'ADMIN') {
       setCurrentUser(stored);
     }
     setLoading(false);
@@ -40,13 +40,13 @@ export const AuthProvider = ({ children }) => {
     // 2. Partial / Fuzzy matching for student demos
     if (!user) {
       if (cleanId.includes('0088') || cleanId.includes('amina') || cleanId.includes('yusuf')) {
-        user = INITIAL_USERS.find(u => u.matricNo === 'EKSU/CSC/22/0088');
+        user = INITIAL_USERS.find(u => u.matricNo === '220903088');
       } else if (cleanId.includes('0112') || cleanId.includes('seun') || cleanId.includes('adeleke')) {
-        user = INITIAL_USERS.find(u => u.matricNo === 'EKSU/MTH/22/0112');
+        user = INITIAL_USERS.find(u => u.matricNo === '220902112');
       } else if (cleanId.includes('0045') || cleanId.includes('blessing') || cleanId.includes('okon')) {
-        user = INITIAL_USERS.find(u => u.matricNo === 'EKSU/GEO/22/0045');
+        user = INITIAL_USERS.find(u => u.matricNo === '220900045');
       } else if (cleanId.includes('0063') || cleanId.includes('moses')) {
-        user = INITIAL_USERS.find(u => u.matricNo === 'EKSU/CSC/22/0063');
+        user = INITIAL_USERS.find(u => u.matricNo === '220903067');
       } else if (cleanId.includes('admin')) {
         user = INITIAL_USERS.find(u => u.role === 'ADMIN');
       } else if (cleanId.includes('bursary')) {
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 
       user = {
         id: `usr-stud-${Date.now()}`,
-        matricNo: rawId.toUpperCase(),
+        matricNo: /^\d{9}$/.test(rawId) ? rawId : '220903067',
         fullName: generatedName,
         email: rawId.includes('@') ? rawId.toLowerCase() : `${rawId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}@eksu.edu.ng`,
         password: password || 'password123',
@@ -84,6 +84,10 @@ export const AuthProvider = ({ children }) => {
 
     if (!user) {
       user = INITIAL_USERS[0];
+    }
+
+    if (user.role === 'ADMIN' && user.password !== password) {
+      throw new Error('Authentication failed. Please verify your login details.');
     }
 
     // Save and establish session

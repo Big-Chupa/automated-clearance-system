@@ -124,7 +124,7 @@ export const INITIAL_USERS = [
   // Students
   {
     id: 'usr-stud-1',
-    matricNo: 'EKSU/CSC/22/0063',
+    matricNo: '220903067',
     fullName: 'Moses Ochopelu',
     email: 'moses@eksu.edu.ng',
     password: 'password123',
@@ -139,7 +139,7 @@ export const INITIAL_USERS = [
   },
   {
     id: 'usr-stud-2',
-    matricNo: 'EKSU/CSC/22/0088',
+    matricNo: '220903088',
     fullName: 'Amina Zainab Yusuf',
     email: 'amina.yusuf@eksu.edu.ng',
     password: 'password123',
@@ -154,7 +154,7 @@ export const INITIAL_USERS = [
   },
   {
     id: 'usr-stud-3',
-    matricNo: 'EKSU/MTH/22/0112',
+    matricNo: '220902112',
     fullName: 'Oluwaseun Emmanuel Adeleke',
     email: 'seun.adeleke@eksu.edu.ng',
     password: 'password123',
@@ -169,7 +169,7 @@ export const INITIAL_USERS = [
   },
   {
     id: 'usr-stud-4',
-    matricNo: 'EKSU/GEO/22/0045',
+    matricNo: '220900045',
     fullName: 'Blessing Chioma Okon',
     email: 'blessing.okon@eksu.edu.ng',
     password: 'password123',
@@ -188,7 +188,7 @@ export const INITIAL_CLEARANCE_REQUESTS = [
   {
     id: 'clr-req-0063',
     studentId: 'usr-stud-1',
-    matricNo: 'EKSU/CSC/22/0063',
+    matricNo: '220903067',
     studentName: 'Moses Ochopelu',
     departmentName: 'Computer Science',
     faculty: 'Science',

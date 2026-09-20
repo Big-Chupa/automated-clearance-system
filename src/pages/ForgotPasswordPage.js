@@ -61,7 +61,7 @@ const ForgotPasswordPage = () => {
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="e.g. FCP/CSC/19/2045 or email"
+              placeholder="e.g. 220903067 or email"
               required
             />
           </div>

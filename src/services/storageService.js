@@ -47,6 +47,19 @@ export const storageService = {
     try {
       let storedUsers = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
       let updated = false;
+      const matricMap = {
+        'EKSU/CSC/22/0063': '220903067',
+        'EKSU/CSC/22/0088': '220903088',
+        'EKSU/MTH/22/0112': '220902112',
+        'EKSU/GEO/22/0045': '220900045'
+      };
+      storedUsers = storedUsers.map(user => {
+        if (user.role === 'STUDENT' && matricMap[user.matricNo]) {
+          updated = true;
+          return { ...user, matricNo: matricMap[user.matricNo] };
+        }
+        return user;
+      });
       INITIAL_USERS.forEach(su => {
         if (!storedUsers.some(u => (u.matricNo && su.matricNo && u.matricNo.toLowerCase() === su.matricNo.toLowerCase()) || (u.email && su.email && u.email.toLowerCase() === su.email.toLowerCase()))) {
           storedUsers.push(su);
@@ -55,6 +68,15 @@ export const storageService = {
       });
       if (updated) {
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(storedUsers));
+      }
+
+      const storedRequests = JSON.parse(localStorage.getItem(STORAGE_KEYS.REQUESTS) || '[]');
+      const normalizedRequests = storedRequests.map(request => {
+        const matricNo = matricMap[request.matricNo];
+        return matricNo ? { ...request, matricNo } : request;
+      });
+      if (JSON.stringify(normalizedRequests) !== JSON.stringify(storedRequests)) {
+        localStorage.setItem(STORAGE_KEYS.REQUESTS, JSON.stringify(normalizedRequests));
       }
     } catch (e) {
       console.warn('Storage sync error', e);
@@ -371,7 +393,7 @@ export const storageService = {
   getCurrentUser() {
     const sessionStr = sessionStorage.getItem(STORAGE_KEYS.SESSION);
     if (sessionStr) return JSON.parse(sessionStr);
-    return INITIAL_USERS[0];
+    return null;
   },
 
   setCurrentUser(user) {

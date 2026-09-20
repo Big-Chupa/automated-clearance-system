@@ -18,6 +18,7 @@ import DepartmentManagementPage from './pages/DepartmentManagementPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SettingsPage from './pages/SettingsPage';
 import { NotFoundPage } from './pages/SettingsAndNotFound';
+import { ProtectedRoute } from './components/common/CommonComponents';
 
 // Styles
 import './styles/variables.css';
@@ -32,17 +33,17 @@ function App() {
           <NotificationProvider>
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
               {/* Admin Portal Pages matching Screenshots */}
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/students" element={<StudentManagementPage />} />
-              <Route path="/admin/departments" element={<DepartmentManagementPage />} />
-              <Route path="/admin/reports" element={<ReportsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/students" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudentManagementPage /></ProtectedRoute>} />
+              <Route path="/admin/departments" element={<ProtectedRoute allowedRoles={['ADMIN']}><DepartmentManagementPage /></ProtectedRoute>} />
+              <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['ADMIN']}><ReportsPage /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><SettingsPage /></ProtectedRoute>} />
 
               {/* Shared Notifications Page */}
               <Route path="/notifications" element={<NotificationsPage />} />

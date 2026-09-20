@@ -5,7 +5,7 @@ import { storageService } from '../services/storageService';
 import { Alert } from '../components/common/CommonComponents';
 
 const LoginPage = () => {
-  const [role, setRole] = useState('STUDENT');
+  const [role, setRole] = useState('ADMIN');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -152,7 +152,7 @@ const LoginPage = () => {
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder={role === 'STUDENT' ? 'e.g. EKSU/CSC/22/0088' : role === 'ADMIN' ? 'admin@eksu.edu.ng' : 'bursary@eksu.edu.ng'}
+              placeholder={role === 'STUDENT' ? 'e.g. 220903067' : role === 'ADMIN' ? 'admin@eksu.edu.ng' : 'bursary@eksu.edu.ng'}
               autoComplete="username"
               required
             />

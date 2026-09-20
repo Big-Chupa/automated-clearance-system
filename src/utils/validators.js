@@ -4,8 +4,7 @@ export const validateEmail = (email) => {
 };
 
 export const validateMatricNo = (matricNo) => {
-  // Format check e.g. FCP/CSC/19/2045 or CSC/2019/1234 or ADMIN/001
-  return typeof matricNo === 'string' && matricNo.trim().length >= 4;
+  return typeof matricNo === 'string' && /^\d{9}$/.test(matricNo.trim());
 };
 
 export const validatePassword = (password) => {

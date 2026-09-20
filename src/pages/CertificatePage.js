@@ -13,7 +13,7 @@ const CertificatePage = () => {
   };
 
   const studentName = myRequest?.studentName || currentUser?.fullName || 'MOSES OCHOPELU';
-  const matricNo = myRequest?.matricNo || currentUser?.matricNo || 'EKSU/CSC/22/0063';
+  const matricNo = myRequest?.matricNo || currentUser?.matricNo || '220903067';
   const departmentName = myRequest?.departmentName || currentUser?.departmentName || 'Computer Science';
   const faculty = myRequest?.faculty || currentUser?.faculty || 'Science';
   const certNumber = myRequest?.certificateNumber || `EKSU/2026/CLR/${matricNo.replace(/[^a-zA-Z0-9]/g, '').slice(-4)}`;
