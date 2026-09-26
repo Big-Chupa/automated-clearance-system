@@ -1,22 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useClearance } from '../context/ClearanceContext';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
+import { apiService } from '../services/apiService';
 
 const CertificatePage = () => {
   const { currentUser } = useAuth();
   const { myRequest } = useClearance();
+  const [certificateRequest, setCertificateRequest] = useState(null);
+  const [certificateCheckDone, setCertificateCheckDone] = useState(false);
+  const [certificateError, setCertificateError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    setCertificateRequest(null);
+    setCertificateError('');
+    setCertificateCheckDone(false);
+    if (!myRequest?.id) {
+      setCertificateCheckDone(true);
+      return () => { active = false; };
+    }
+    apiService.getCertificate(myRequest.id)
+      .then(({ request }) => { if (active) setCertificateRequest(request); })
+      .catch((error) => { if (active) setCertificateError(error.message); })
+      .finally(() => { if (active) setCertificateCheckDone(true); });
+    return () => { active = false; };
+  }, [myRequest?.id]);
+
+  const certificateReady = Boolean(certificateRequest);
 
   const handlePrint = () => {
-    window.print();
+    if (certificateReady) window.print();
   };
 
-  const studentName = myRequest?.studentName || currentUser?.fullName || 'MOSES OCHOPELU';
-  const matricNo = myRequest?.matricNo || currentUser?.matricNo || '220903067';
-  const departmentName = myRequest?.departmentName || currentUser?.departmentName || 'Computer Science';
-  const faculty = myRequest?.faculty || currentUser?.faculty || 'Science';
-  const certNumber = myRequest?.certificateNumber || `EKSU/2026/CLR/${matricNo.replace(/[^a-zA-Z0-9]/g, '').slice(-4)}`;
+  const studentName = certificateRequest?.studentName || myRequest?.studentName || currentUser?.fullName || 'MOSES OCHOPEFU';
+  const matricNo = certificateRequest?.matricNo || myRequest?.matricNo || currentUser?.matricNo || '220903067';
+  const departmentName = certificateRequest?.departmentName || myRequest?.departmentName || currentUser?.departmentName || 'Computer Science';
+  const faculty = certificateRequest?.faculty || myRequest?.faculty || currentUser?.faculty || 'Science';
+  const degree = currentUser?.degree || 'B.Sc. (Hons) Computer Science';
 
   return (
     <div className="app-layout">
@@ -24,11 +46,22 @@ const CertificatePage = () => {
       <div className="portal-container">
         <Sidebar />
         <main className="portal-content">
+          {!certificateCheckDone ? (
+            <div className="content-card" role="status">
+              <h1 className="page-main-heading">Verifying clearance approvals</h1>
+              <p className="page-sub-heading">Please wait while the server confirms that every required approval is complete.</p>
+            </div>
+          ) : !certificateReady ? (
+            <div className="content-card" role="alert">
+              <h1 className="page-main-heading">Certificate not available</h1>
+              <p className="page-sub-heading">{certificateError || 'The final certificate can only be printed after all required documents are approved by both the administrator and their assigned clearance officer, and all clearance units are approved.'}</p>
+            </div>
+          ) : <>
           <div className="breadcrumb-trail cert-print-actions">Home / Final Certificate</div>
           <div className="page-header-row cert-print-actions">
             <div>
-              <h1 className="page-main-heading">Final Clearance Certificate</h1>
-              <p className="page-sub-heading">Official certification of graduate clearance for EKSU.</p>
+              <h1 className="page-main-heading">Academic Result</h1>
+              <p className="page-sub-heading">Academic prototype preview with an example honours classification.</p>
             </div>
             <button onClick={handlePrint} className="btn btn-pill-maroon" style={{ padding: '0.5rem 1.4rem' }}>
               🖨️ Print / Save as PDF
@@ -67,17 +100,16 @@ const CertificatePage = () => {
                 color: '#701a2b',
                 letterSpacing: '0.05em'
               }}>
-                FINAL GRADUATE CLEARANCE CERTIFICATE
+                Second Class Upper
               </div>
 
               <p style={{ fontSize: '0.9rem', color: '#334155', lineHeight: '1.8', maxWidth: '650px', margin: '0 auto 1.25rem auto' }}>
-                This is to officially certify that the student whose details appear below has satisfactorily fulfilled all academic, financial, administrative, and disciplinary clearance requirements for graduation.
+                This example honours classification is for the academic prototype and is not sourced from an academic transcript.
               </p>
 
               <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#701a2b', textDecoration: 'underline', textUnderlineOffset: '4px', marginBottom: '1.25rem' }}>
                 {studentName.toUpperCase()}
               </div>
-
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -93,27 +125,16 @@ const CertificatePage = () => {
               }}>
                 <div><strong>Matriculation No:</strong> {matricNo}</div>
                 <div><strong>Graduation Session:</strong> 2025/2026</div>
+                <div><strong>Degree Earned:</strong> {degree}</div>
                 <div><strong>Department:</strong> {departmentName}</div>
                 <div><strong>Faculty:</strong> {faculty}</div>
-                <div><strong>Certificate No:</strong> {certNumber}</div>
-                <div><strong>Verification Status:</strong> <span style={{ color: '#16a34a', fontWeight: 700 }}>FULLY CLEARED</span></div>
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', padding: '0 1rem', flexWrap: 'wrap', gap: '1.5rem' }}>
-                <div style={{ textAlign: 'center', minWidth: '140px' }}>
-                  <div style={{ width: '140px', borderTop: '1px dashed #000', marginBottom: '0.4rem', margin: '0 auto' }}></div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>Dr. T. Ogunleye</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Head of Department</div>
-                </div>
-
-                <div style={{ textAlign: 'center', minWidth: '140px' }}>
-                  <div style={{ width: '140px', borderTop: '1px dashed #000', marginBottom: '0.4rem', margin: '0 auto' }}></div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>Mr. P. Adebayo</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Academic Registrar</div>
-                </div>
-              </div>
+              <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '1rem' }}>
+                Academic prototype preview · example classification
+              </p>
             </div>
           </div>
+          </>}
         </main>
       </div>
     </div>

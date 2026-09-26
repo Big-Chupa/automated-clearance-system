@@ -4,10 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { useClearance } from '../context/ClearanceContext';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
+import { isCertificateReady } from '../utils/clearance';
 
 const StudentDashboard = () => {
   const { currentUser } = useAuth();
   const { myRequest, departments, submitClearanceApplication } = useClearance();
+  const certificateReady = isCertificateReady(myRequest);
 
   const handleStart = () => {
     try {
@@ -35,7 +37,7 @@ const StudentDashboard = () => {
                 Welcome back, {currentUser?.fullName} ({currentUser?.matricNo || '220903067'})
               </p>
             </div>
-            {myRequest?.overallStatus === 'APPROVED' ? (
+            {certificateReady ? (
               <Link to="/student/certificate" className="btn btn-pill-maroon">
                 📜 View Certificate
               </Link>
@@ -99,7 +101,7 @@ const StudentDashboard = () => {
                   <Link to="/student/progress" className="btn btn-pill-maroon">
                     View Clearance Units
                   </Link>
-                  {myRequest.overallStatus === 'APPROVED' && (
+                  {certificateReady && (
                     <Link to="/student/certificate" className="btn btn-pill-outline">
                       Print Final Certificate
                     </Link>

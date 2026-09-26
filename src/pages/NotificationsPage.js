@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
-import { storageService } from '../services/storageService';
+import { useNotification } from '../context/NotificationContext';
 
 const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState(storageService.getNotifications());
+  const { notifications, markAllAsRead } = useNotification();
 
   const handleMarkAllRead = () => {
-    const updated = storageService.markAllNotificationsRead();
-    setNotifications(updated);
+    markAllAsRead();
   };
 
   return (

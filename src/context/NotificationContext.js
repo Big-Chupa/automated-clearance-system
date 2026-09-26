@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { storageService } from '../services/storageService';
+import { apiService } from '../services/apiService';
 import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext(null);
@@ -15,15 +15,7 @@ export const NotificationProvider = ({ children }) => {
       return;
     }
 
-    const all = storageService.getNotifications();
-    const userNotifications = all.filter(n => {
-      if (currentUser.role === 'STUDENT' && n.recipientStudentId === currentUser.id) return true;
-      if (currentUser.role === 'OFFICER' && n.recipientRole === 'OFFICER') return true;
-      if (currentUser.role === 'ADMIN') return true;
-      return false;
-    });
-
-    setNotifications(userNotifications);
+    apiService.getNotifications().then(setNotifications).catch(() => setNotifications([]));
   }, [currentUser]);
 
   useEffect(() => {
@@ -37,11 +29,9 @@ export const NotificationProvider = ({ children }) => {
     }, duration);
   };
 
-  const markAllAsRead = () => {
-    const all = storageService.getNotifications();
-    const updated = all.map(n => ({ ...n, read: true }));
-    localStorage.setItem('acs_notifications', JSON.stringify(updated));
-    fetchNotifications();
+  const markAllAsRead = async () => {
+    const updated = await apiService.markNotificationsRead();
+    setNotifications(updated);
   };
 
   const value = {

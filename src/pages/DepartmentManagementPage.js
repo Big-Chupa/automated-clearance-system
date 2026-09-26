@@ -1,17 +1,31 @@
 import React, { useState } from 'react';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
-import { storageService } from '../services/storageService';
+import { apiService } from '../services/apiService';
+import { useClearance } from '../context/ClearanceContext';
+import { useAuth } from '../context/AuthContext';
 import { Modal } from '../components/common/CommonComponents';
 
+const DOCUMENT_DEPARTMENT = {
+  'Bursary School Fees & Convocation Receipt': 'BURSARY',
+  'Library Card & Book Return Slip': 'LIBRARY',
+  'Departmental Project Approval Sheet': 'DEPARTMENT',
+  'Faculty Clearance & Statement of Results': 'FACULTY',
+  'Student Affairs Clearance Slip & ID Card': 'STUDENT_AFFAIRS'
+};
+
 const DepartmentManagementPage = () => {
-  const [departments, setDepartments] = useState(storageService.getDepartments());
+  const { departments, requests, refreshData } = useClearance();
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const officerDeptCode = currentUser?.departmentCode;
   const [filterUnit, setFilterUnit] = useState('All Units');
   const [selectedDept, setSelectedDept] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isStudentReviewOpen, setIsStudentReviewOpen] = useState(false);
   const [selectedStudentRequest, setSelectedStudentRequest] = useState(null);
+  const [documentRemarks, setDocumentRemarks] = useState('');
 
   // Edit Officer Form State
   const [officerName, setOfficerName] = useState('');
@@ -23,8 +37,6 @@ const DepartmentManagementPage = () => {
   const [newOfficerName, setNewOfficerName] = useState('');
   const [newOfficerEmail, setNewOfficerEmail] = useState('');
 
-  const requests = storageService.getClearanceRequests();
-
   const handleOpenManage = (dept) => {
     setSelectedDept(dept);
     setOfficerName(dept.officerName);
@@ -32,16 +44,16 @@ const DepartmentManagementPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveEdit = (e) => {
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!selectedDept) return;
     const updated = { ...selectedDept, officerName, email: officerEmail };
-    storageService.updateDepartment(updated);
-    setDepartments(storageService.getDepartments());
+    await apiService.updateDepartment(selectedDept.id, updated);
+    await refreshData();
     setIsModalOpen(false);
   };
 
-  const handleAddDepartment = (e) => {
+  const handleAddDepartment = async (e) => {
     e.preventDefault();
     const newDept = {
       id: `dept-${Date.now()}`,
@@ -54,8 +66,8 @@ const DepartmentManagementPage = () => {
       status: 'Active',
       icon: '🏢'
     };
-    storageService.saveDepartment(newDept);
-    setDepartments(storageService.getDepartments());
+    await apiService.createDepartment(newDept);
+    await refreshData();
     setIsAddModalOpen(false);
     setNewDeptName('');
     setNewDeptDesc('');
@@ -68,10 +80,26 @@ const DepartmentManagementPage = () => {
     setIsStudentReviewOpen(true);
   };
 
+  const handleDocumentDecision = async (documentId, decision) => {
+    try {
+      const action = isAdmin
+        ? (decision === 'APPROVED' ? apiService.approveDocument : apiService.rejectDocument)
+        : (decision === 'APPROVED' ? apiService.approveDocumentAsOfficer : apiService.rejectDocumentAsOfficer);
+      const result = await action(documentId, documentRemarks);
+      await refreshData();
+      setSelectedStudentRequest(result.request || selectedStudentRequest);
+      setDocumentRemarks('');
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   const filteredDepts = departments.filter(d => {
     if (filterUnit === 'All Units') return true;
     return d.name === filterUnit;
   });
+  const reviewableRequests = requests.filter((request) => isAdmin || (request.documents || []).some((doc) => DOCUMENT_DEPARTMENT[doc.type] === officerDeptCode));
+  const reviewDocuments = (selectedStudentRequest?.documents || []).filter((doc) => isAdmin || DOCUMENT_DEPARTMENT[doc.type] === officerDeptCode);
 
   return (
     <div className="app-layout">
@@ -80,7 +108,7 @@ const DepartmentManagementPage = () => {
         <Sidebar />
         <main className="portal-content">
           <div className="breadcrumb-trail">Home / Department Management</div>
-          <div className="page-header-row">
+          {isAdmin && <div className="page-header-row">
             <div>
               <h1 className="page-main-heading">Department Management</h1>
               <p className="page-sub-heading">
@@ -94,9 +122,15 @@ const DepartmentManagementPage = () => {
             >
               Add Department
             </button>
-          </div>
+          </div>}
+          {!isAdmin && <div className="page-header-row">
+            <div>
+              <h1 className="page-main-heading">{currentUser?.departmentName} Document Review</h1>
+              <p className="page-sub-heading">Review documents submitted to your clearance unit. Admin and officer approval are both required.</p>
+            </div>
+          </div>}
 
-          <div className="content-card" style={{ padding: '1.25rem' }}>
+          {isAdmin && <div className="content-card" style={{ padding: '1.25rem' }}>
             {/* Filter Bar */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.25rem' }}>
               <select
@@ -152,7 +186,7 @@ const DepartmentManagementPage = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div>}
 
           {/* Verification Requests & Documents Roster */}
           <div className="content-card">
@@ -170,7 +204,7 @@ const DepartmentManagementPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.map(req => (
+                  {reviewableRequests.map(req => (
                     <tr key={req.id}>
                       <td><strong>{req.matricNo}</strong></td>
                       <td>{req.studentName}</td>
@@ -220,9 +254,9 @@ const DepartmentManagementPage = () => {
               <strong>Student:</strong> {selectedStudentRequest.studentName} | <strong>Matric:</strong> {selectedStudentRequest.matricNo}
             </div>
 
-            {(!selectedStudentRequest.documents || selectedStudentRequest.documents.length === 0) ? (
+            {reviewDocuments.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', backgroundColor: '#f8fafc', borderRadius: '6px' }}>
-                Student has not uploaded verification documents yet.
+                {isAdmin ? 'Student has not uploaded verification documents yet.' : 'No documents for your clearance unit are attached to this request.'}
               </div>
             ) : (
               <div className="eksu-table-container">
@@ -233,16 +267,37 @@ const DepartmentManagementPage = () => {
                       <th>FILE NAME</th>
                       <th>SIZE</th>
                       <th>UPLOADED</th>
+                      <th>STATUS</th>
+                      <th>ACTION</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedStudentRequest.documents.map(d => (
+                    {reviewDocuments.map(d => (
                       <tr key={d.id}>
                         <td><strong>{d.type}</strong></td>
                         <td>{d.name}</td>
                         <td style={{ color: 'var(--text-muted)' }}>{d.size}</td>
                         <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                           {new Date(d.uploadedAt).toLocaleDateString('en-GB')}
+                        </td>
+                        <td>
+                          <strong>{d.status || 'PENDING'}</strong>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Admin: {d.adminApprovedAt ? 'Approved' : 'Pending'} · Officer: {d.officerApprovedAt ? 'Approved' : 'Pending'}
+                          </div>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            placeholder="Remark"
+                            value={documentRemarks}
+                            onChange={(e) => setDocumentRemarks(e.target.value)}
+                            style={{ width: '120px', marginBottom: '0.3rem' }}
+                          />
+                          <div style={{ display: 'flex', gap: '0.3rem' }}>
+                            <button type="button" className="btn btn-success btn-sm" disabled={isAdmin ? Boolean(d.adminApprovedAt) : Boolean(d.officerApprovedAt)} onClick={() => handleDocumentDecision(d.id, 'APPROVED')}>{isAdmin ? 'Admin approve' : 'Officer approve'}</button>
+                            <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDocumentDecision(d.id, 'REJECTED')}>Reject</button>
+                          </div>
                         </td>
                       </tr>
                     ))}

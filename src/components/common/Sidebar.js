@@ -7,7 +7,8 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   const isStudent = currentUser?.role === 'STUDENT';
-  const portalTitle = isStudent ? 'STUDENT PORTAL' : 'ADMINISTRATOR PORTAL';
+  const isOfficer = currentUser?.role === 'OFFICER';
+  const portalTitle = isStudent ? 'STUDENT PORTAL' : isOfficer ? 'OFFICER PORTAL' : 'ADMINISTRATOR PORTAL';
 
   const closeMobileSidebar = () => {
     const sidebar = document.querySelector('.portal-sidebar');
@@ -87,6 +88,36 @@ const Sidebar = () => {
                   className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
                 >
                   <span className="sidebar-icon">✦</span> Final Certificate
+                </NavLink>
+              </li>
+            </>
+          ) : isOfficer ? (
+            <>
+              <li className="sidebar-nav-item">
+                <NavLink 
+                  to="/department/dashboard" 
+                  onClick={closeMobileSidebar}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
+                >
+                  <span className="sidebar-icon">✦</span> Overview
+                </NavLink>
+              </li>
+              <li className="sidebar-nav-item">
+                <NavLink 
+                  to="/admin/departments" 
+                  onClick={closeMobileSidebar}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
+                >
+                  <span className="sidebar-icon">✦</span> Document Review
+                </NavLink>
+              </li>
+              <li className="sidebar-nav-item">
+                <NavLink 
+                  to="/notifications" 
+                  onClick={closeMobileSidebar}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
+                >
+                  <span className="sidebar-icon">✦</span> Notifications
                 </NavLink>
               </li>
             </>

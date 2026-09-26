@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
-import { storageService } from '../services/storageService';
+import { apiService } from '../services/apiService';
 
 const StudentManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [users] = useState(storageService.getUsers().filter(u => u.role === 'STUDENT'));
+  const [users, setUsers] = useState([]);
+
+  React.useEffect(() => {
+    apiService.getStudents().then(setUsers).catch(() => setUsers([]));
+  }, []);
 
   const filtered = users.filter(u => 
     u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||

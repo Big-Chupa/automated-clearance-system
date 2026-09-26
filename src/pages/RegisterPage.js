@@ -30,7 +30,7 @@ const RegisterPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -68,7 +68,7 @@ const RegisterPage = () => {
         password: formData.password
       };
 
-      registerStudent(studentData);
+      await registerStudent(studentData);
       showToast('Registration successful! You are now logged in.', 'success');
       navigate('/student/dashboard');
     } catch (err) {

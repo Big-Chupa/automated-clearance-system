@@ -4,43 +4,20 @@ import { useClearance } from '../context/ClearanceContext';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
 import { Modal } from '../components/common/CommonComponents';
-
-const REQUIRED_DOC_TYPES = [
-  'Bursary School Fees & Convocation Receipt',
-  'Library Card & Book Return Slip',
-  'Departmental Project Approval Sheet',
-  'Faculty Clearance & Statement of Results',
-  'Student Affairs Clearance Slip & ID Card'
-];
-
-const VERIFICATION_STEPS = [
-  { unit: 'Bursary & Financial Accounts', detail: 'Verifying school fees, departmental dues, and convocation payments...' },
-  { unit: 'University Library System', detail: 'Cross-referencing borrower records and checking for outstanding library books...' },
-  { unit: 'Department of Computer Science', detail: 'Validating final year project repository submission and HOD endorsement...' },
-  { unit: 'Faculty Board of Examiners', detail: 'Verifying course unit compliance, grade point average, and Dean endorsement...' },
-  { unit: 'Student Affairs Directorate', detail: 'Checking disciplinary registries, alumni dues, and hall clearance records...' },
-  { unit: 'Academic Registry & Examinations', detail: 'Generating cryptographically sealed graduate clearance certificate...' }
-];
+import { REQUIRED_DOCUMENT_TYPES, isCertificateReady } from '../utils/clearance';
 
 const ClearancePage = () => {
-  const { myRequest, departments, submitClearanceApplication, uploadDocument, deleteDocument, runAutomatedVerification } = useClearance();
+  const { myRequest, departments, submitClearanceApplication, uploadDocument, deleteDocument } = useClearance();
 
-  const [selectedDocType, setSelectedDocType] = useState(REQUIRED_DOC_TYPES[0]);
+  const [selectedDocType, setSelectedDocType] = useState(REQUIRED_DOCUMENT_TYPES[0]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  // Verification Simulation State
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationProgress, setVerificationProgress] = useState(0);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
-  const [isVerificationComplete, setIsVerificationComplete] = useState(false);
-
-  const handleStart = () => {
+  const handleStart = async () => {
     try {
-      submitClearanceApplication();
+      await submitClearanceApplication();
     } catch (e) {
       alert(e.message);
     }
@@ -53,25 +30,25 @@ const ClearancePage = () => {
     }
   };
 
-  const handleUploadSubmit = (e) => {
+  const handleUploadSubmit = async (e) => {
     e.preventDefault();
-    if (selectedFile) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Data = event.target.result;
+    if (!selectedFile) {
+      alert('Select a document file before uploading.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
         const sizeKb = Math.round(selectedFile.size / 1024) + ' KB';
-        uploadDocument(selectedDocType, selectedFile.name, base64Data, sizeKb);
+        await uploadDocument(selectedDocType, selectedFile.name, event.target.result, sizeKb, selectedFile.type);
         setUploadSuccess(true);
         setSelectedFile(null);
         setTimeout(() => setUploadSuccess(false), 3500);
-      };
-      reader.readAsDataURL(selectedFile);
-    } else {
-      // Mock upload if user clicked without browsing
-      uploadDocument(selectedDocType, `${selectedDocType.replace(/\s+/g, '_')}_EKSU.pdf`, null, '210 KB');
-      setUploadSuccess(true);
-      setTimeout(() => setUploadSuccess(false), 3500);
-    }
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+    reader.readAsDataURL(selectedFile);
   };
 
   const handleOpenPreview = (doc) => {
@@ -79,31 +56,8 @@ const ClearancePage = () => {
     setIsPreviewOpen(true);
   };
 
-  const handleStartVerificationSimulation = () => {
-    setIsVerificationModalOpen(true);
-    setIsVerifying(true);
-    setIsVerificationComplete(false);
-    setVerificationProgress(5);
-    setCurrentStepIndex(0);
-
-    let step = 0;
-    const interval = setInterval(() => {
-      step++;
-      if (step < VERIFICATION_STEPS.length) {
-        setCurrentStepIndex(step);
-        setVerificationProgress(Math.round((step / VERIFICATION_STEPS.length) * 100));
-      } else {
-        clearInterval(interval);
-        setVerificationProgress(100);
-        setIsVerifying(false);
-        setIsVerificationComplete(true);
-        runAutomatedVerification();
-      }
-    }, 900);
-  };
-
   const userDocuments = myRequest?.documents || [];
-  const isApproved = myRequest?.overallStatus === 'APPROVED';
+  const isApproved = isCertificateReady(myRequest);
 
   return (
     <div className="app-layout">
@@ -171,15 +125,6 @@ const ClearancePage = () => {
                     </p>
                   </div>
 
-                  {userDocuments.length > 0 && !isApproved && (
-                    <button
-                      onClick={handleStartVerificationSimulation}
-                      className="btn btn-pill-maroon"
-                      style={{ padding: '0.55rem 1.35rem', animation: 'pulse 2s infinite' }}
-                    >
-                      ⚡ Submit & Run Instant Verification
-                    </button>
-                  )}
                 </div>
 
                 {uploadSuccess && (
@@ -205,7 +150,7 @@ const ClearancePage = () => {
                       value={selectedDocType}
                       onChange={(e) => setSelectedDocType(e.target.value)}
                     >
-                      {REQUIRED_DOC_TYPES.map((type, idx) => (
+                      {REQUIRED_DOCUMENT_TYPES.map((type, idx) => (
                         <option key={idx} value={type}>{type}</option>
                       ))}
                     </select>
@@ -253,6 +198,7 @@ const ClearancePage = () => {
                             <th>FILE NAME</th>
                             <th>SIZE</th>
                             <th>DATE UPLOADED</th>
+                            <th>APPROVAL STATUS</th>
                             <th style={{ textAlign: 'center' }}>ACTIONS</th>
                           </tr>
                         </thead>
@@ -264,6 +210,12 @@ const ClearancePage = () => {
                               <td style={{ color: 'var(--text-muted)' }}>{doc.size}</td>
                               <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                                 {new Date(doc.uploadedAt).toLocaleDateString('en-GB')}
+                              </td>
+                              <td>
+                                <strong>{doc.status || 'PENDING'}</strong>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                  Admin: {doc.adminApprovedAt ? 'Approved' : 'Pending'} · Officer: {doc.officerApprovedAt ? 'Approved' : 'Pending'}
+                                </div>
                               </td>
                               <td style={{ textAlign: 'center' }}>
                                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
@@ -300,15 +252,6 @@ const ClearancePage = () => {
                   <h2 className="card-heading-title" style={{ margin: 0 }}>
                     🏛️ Step 2: Clearance Units Status Roster
                   </h2>
-                  {!isApproved && (
-                    <button
-                      onClick={handleStartVerificationSimulation}
-                      className="btn btn-pill-outline"
-                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.9rem' }}
-                    >
-                      ⚡ Fast Track Automated Verification
-                    </button>
-                  )}
                 </div>
 
                 <div className="eksu-table-container">
@@ -370,72 +313,6 @@ const ClearancePage = () => {
           )}
         </main>
       </div>
-
-      {/* Real-Time Automated Verification Simulation Modal */}
-      <Modal
-        isOpen={isVerificationModalOpen}
-        title="Automated Multi-Unit Verification Engine"
-        onClose={() => !isVerifying && setIsVerificationModalOpen(false)}
-        footer={
-          isVerificationComplete ? (
-            <Link to="/student/certificate" className="btn btn-pill-maroon btn-sm">
-              📜 Open & Print Certificate
-            </Link>
-          ) : (
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Verifying university records in real-time...</span>
-          )
-        }
-      >
-        <div style={{ padding: '1rem 0.5rem', textAlign: 'center' }}>
-          {isVerifying ? (
-            <div>
-              <div style={{ fontSize: '2.25rem', marginBottom: '0.75rem', animation: 'spin 2s linear infinite' }}>⚙️</div>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Processing Academic & Financial Verification</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-                {VERIFICATION_STEPS[currentStepIndex]?.detail}
-              </p>
-
-              {/* Progress Tracker */}
-              <div style={{ height: '10px', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden', marginBottom: '1.5rem' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${verificationProgress}%`,
-                  backgroundColor: 'var(--primary-color)',
-                  transition: 'width 0.4s ease'
-                }}></div>
-              </div>
-
-              {/* Live Step Checklist */}
-              <div style={{ textAlign: 'left', backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.825rem' }}>
-                {VERIFICATION_STEPS.map((step, idx) => (
-                  <div key={idx} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.35rem 0',
-                    color: idx < currentStepIndex ? '#16a34a' : idx === currentStepIndex ? 'var(--primary-color)' : '#94a3b8',
-                    fontWeight: idx === currentStepIndex ? 600 : 400
-                  }}>
-                    <span>{idx < currentStepIndex ? '✓' : idx === currentStepIndex ? '⏳' : '○'}</span>
-                    <span>{step.unit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>✅</div>
-              <h3 style={{ fontSize: '1.2rem', color: '#166534', marginBottom: '0.35rem' }}>Verification Completed Successfully!</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-                All clearance units have approved your records. Your final certificate is now unlocked and ready for printing.
-              </p>
-              <div style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.75rem', borderRadius: '6px', fontSize: '0.85rem', color: '#065f46', marginBottom: '1rem' }}>
-                <strong>Certificate Number:</strong> {myRequest?.certificateNumber || 'EKSU/2026/CLR/VERIFIED'}
-              </div>
-            </div>
-          )}
-        </div>
-      </Modal>
 
       {/* Document Preview Modal */}
       <Modal

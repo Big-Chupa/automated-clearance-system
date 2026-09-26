@@ -37,7 +37,7 @@ export const INITIAL_DEPARTMENTS = [
     code: 'BURSARY',
     name: 'Bursary',
     description: 'Fees and financial obligations',
-    officerName: 'Mr. K. Ojo',
+    officerName: 'Development Bursary Officer',
     email: 'bursary@eksu.edu.ng',
     pendingCount: 57,
     status: 'Active',
@@ -85,11 +85,11 @@ export const INITIAL_USERS = [
   {
     id: 'usr-dept-1',
     matricNo: 'BUR/01',
-    fullName: 'Mr. K. Ojo',
+    fullName: 'Development Bursary Officer',
     email: 'bursary@eksu.edu.ng',
     password: 'password123',
     role: 'OFFICER',
-    initials: 'KO',
+    initials: 'DBO',
     departmentCode: 'BURSARY',
     departmentName: 'Bursary',
     phone: '08039876543',
@@ -125,7 +125,7 @@ export const INITIAL_USERS = [
   {
     id: 'usr-stud-1',
     matricNo: '220903067',
-    fullName: 'Moses Ochopelu',
+    fullName: 'Moses Ochopefu',
     email: 'moses@eksu.edu.ng',
     password: 'password123',
     role: 'STUDENT',
@@ -189,7 +189,7 @@ export const INITIAL_CLEARANCE_REQUESTS = [
     id: 'clr-req-0063',
     studentId: 'usr-stud-1',
     matricNo: '220903067',
-    studentName: 'Moses Ochopelu',
+    studentName: 'Moses Ochopefu',
     departmentName: 'Computer Science',
     faculty: 'Science',
     session: '2025/2026',
@@ -205,7 +205,7 @@ export const INITIAL_CLEARANCE_REQUESTS = [
       DEPARTMENT: { status: 'APPROVED', date: '2026-04-15T11:00:00.000Z', officer: 'Dr. T. Ogunleye', comments: 'Departmental project submitted and approved.' },
       FACULTY: { status: 'APPROVED', date: '2026-04-16T14:05:00.000Z', officer: 'Mrs. R. Akande', comments: 'Faculty results verified and endorsed.' },
       LIBRARY: { status: 'APPROVED', date: '2026-04-17T10:42:00.000Z', officer: 'Mrs. Funmi Adeyemi', comments: 'No outstanding book or fine was found.' },
-      BURSARY: { status: 'APPROVED', date: '2026-04-17T12:30:00.000Z', officer: 'Mr. K. Ojo', comments: 'School fees and graduation payments verified.' },
+      BURSARY: { status: 'APPROVED', date: '2026-04-17T12:30:00.000Z', officer: 'Development Bursary Officer', comments: 'School fees and graduation payments verified.' },
       STUDENT_AFFAIRS: { status: 'APPROVED', date: '2026-04-18T09:15:00.000Z', officer: 'Mrs. A. Faleye', comments: 'No disciplinary record found.' },
       REGISTRY: { status: 'APPROVED', date: '2026-04-18T14:00:00.000Z', officer: 'Mr. P. Adebayo', comments: 'Final clearance endorsed.' }
     }
@@ -218,7 +218,7 @@ export const INITIAL_AUDIT_LOGS = [
     timestamp: '2026-04-15T09:18:00.000Z',
     userId: 'usr-stud-1',
     userRole: 'STUDENT',
-    userName: 'Moses Ochopelu',
+    userName: 'Moses Ochopefu',
     action: 'CLEARANCE_SUBMITTED',
     description: 'Submitted clearance application CLR-2026-0063.'
   },
@@ -229,7 +229,7 @@ export const INITIAL_AUDIT_LOGS = [
     userRole: 'OFFICER',
     userName: 'Mrs. Funmi Adeyemi (Library)',
     action: 'STATUS_APPROVED',
-    description: 'Approved library clearance for Moses Ochopelu.'
+    description: 'Approved library clearance for Moses Ochopefu.'
   }
 ];
 

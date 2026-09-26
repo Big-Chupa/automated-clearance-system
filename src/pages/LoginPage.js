@@ -29,7 +29,7 @@ const LoginPage = () => {
     setTimeout(() => setResetSuccess(false), 3000);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -45,12 +45,12 @@ const LoginPage = () => {
 
     try {
       setLoading(true);
-      const user = login(identifier, password, role);
+      const user = await login(identifier, password, role);
 
       if (user.role === 'STUDENT') {
         navigate('/student/dashboard');
       } else if (user.role === 'OFFICER') {
-        navigate('/admin/departments');
+        navigate('/department/dashboard');
       } else {
         navigate('/admin/dashboard');
       }

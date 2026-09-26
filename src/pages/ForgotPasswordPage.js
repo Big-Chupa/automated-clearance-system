@@ -13,7 +13,7 @@ const ForgotPasswordPage = () => {
 
   const { resetPassword } = useAuth();
 
-  const handleReset = (e) => {
+  const handleReset = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
@@ -30,7 +30,7 @@ const ForgotPasswordPage = () => {
 
     try {
       setLoading(true);
-      resetPassword(identifier, newPassword);
+      await resetPassword(identifier, newPassword);
       setMessage('Password successfully reset. You can now login with your new credentials.');
       setIdentifier('');
       setNewPassword('');

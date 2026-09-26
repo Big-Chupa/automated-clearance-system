@@ -111,6 +111,9 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(currentUser.role)) {
+    if (currentUser.role === 'STUDENT') return <Navigate to="/student/dashboard" replace />;
+    if (currentUser.role === 'OFFICER') return <Navigate to="/department/dashboard" replace />;
+    if (currentUser.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
     return <Navigate to="/login" replace />;
   }
 

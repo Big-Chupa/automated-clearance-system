@@ -21,6 +21,7 @@ const DepartmentDashboard = () => {
   const [actionType, setActionType] = useState('APPROVED'); // APPROVED or REJECTED
   const [officerComments, setOfficerComments] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSavingDecision, setIsSavingDecision] = useState(false);
 
   const deptCode = currentUser?.departmentCode || 'BURSARY';
   const deptName = currentUser?.departmentName || 'Departmental Review Office';
@@ -48,30 +49,36 @@ const DepartmentDashboard = () => {
     setIsModalOpen(true);
   };
 
-  const handleConfirmDecision = () => {
+  const handleConfirmDecision = async () => {
     if (!selectedRequest) return;
+    setIsSavingDecision(true);
     try {
-      updateDepartmentStatus(selectedRequest.id, actionType, officerComments);
+      await updateDepartmentStatus(selectedRequest.id, actionType, officerComments);
       showToast(`Clearance request for ${selectedRequest.matricNo} set to ${actionType}.`, 'success');
       setIsModalOpen(false);
     } catch (err) {
       showToast(err.message, 'error');
+    } finally {
+      setIsSavingDecision(false);
     }
   };
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar />
-      <div className="main-content">
-        <Navbar />
-        <div className="page-container">
-          <div className="page-header">
-            <h1 className="page-title">{deptName}</h1>
-            <p className="page-description">Officer: {currentUser?.fullName} | Verification & Endorsement Desk</p>
+    <div className="app-layout">
+      <Navbar />
+      <div className="portal-container">
+        <Sidebar />
+        <main className="portal-content">
+          <div className="breadcrumb-trail">Home / Officer Overview</div>
+          <div className="page-header-row">
+            <div>
+              <h1 className="page-main-heading">{deptName}</h1>
+              <p className="page-sub-heading">Officer: {currentUser?.fullName} | Verification &amp; Endorsement Desk</p>
+            </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="stats-grid">
+          <div className="stat-cards-grid">
             <div className="stat-card">
               <div>
                 <div className="stat-value">{totalCount}</div>
@@ -103,7 +110,7 @@ const DepartmentDashboard = () => {
           </div>
 
           {/* Table Container */}
-          <div className="card">
+          <div className="content-card">
             <div className="card-header">
               <span className="card-title">Clearance Applications Roster</span>
             </div>
@@ -130,8 +137,8 @@ const DepartmentDashboard = () => {
               </select>
             </div>
 
-            <div className="table-container">
-              <table className="custom-table">
+            <div className="eksu-table-container">
+              <table className="eksu-table">
                 <thead>
                   <tr>
                     <th>Matric Number</th>
@@ -189,7 +196,6 @@ const DepartmentDashboard = () => {
               </table>
             </div>
           </div>
-        </div>
 
         {/* Modal for Approval / Rejection */}
         <Modal
@@ -203,9 +209,10 @@ const DepartmentDashboard = () => {
               </button>
               <button
                 onClick={handleConfirmDecision}
+                disabled={isSavingDecision}
                 className={`btn btn-${actionType === 'APPROVED' ? 'success' : 'danger'} btn-sm`}
               >
-                Confirm {actionType === 'APPROVED' ? 'Approval' : 'Rejection'}
+                {isSavingDecision ? 'Saving…' : `Confirm ${actionType === 'APPROVED' ? 'Approval' : 'Rejection'}`}
               </button>
             </>
           }
@@ -231,7 +238,8 @@ const DepartmentDashboard = () => {
           )}
         </Modal>
 
-        <Footer />
+          <Footer />
+        </main>
       </div>
     </div>
   );

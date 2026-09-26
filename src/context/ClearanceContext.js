@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { storageService } from '../services/storageService';
+import { apiService } from '../services/apiService';
 import { useAuth } from './AuthContext';
 
 const ClearanceContext = createContext(null);
@@ -12,22 +12,28 @@ export const ClearanceProvider = ({ children }) => {
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const refreshData = useCallback(() => {
-    const allDepts = storageService.getDepartments();
-    const allReqs = storageService.getClearanceRequests();
-    const allLogs = storageService.getAuditLogs();
+  const refreshData = useCallback(async () => {
+    if (!currentUser) {
+      setDepartments([]);
+      setRequests([]);
+      setAuditLogs([]);
+      setMyRequest(null);
+      setLoading(false);
+      return;
+    }
+
+    const [allDepts, allReqs, allLogs] = await Promise.all([
+      apiService.getDepartments(),
+      apiService.getClearanceRequests(),
+      currentUser.role === 'ADMIN' ? apiService.getAuditLogs() : Promise.resolve([])
+    ]);
 
     setDepartments(allDepts);
     setRequests(allReqs);
     setAuditLogs(allLogs);
 
-    if (currentUser && currentUser.role === 'STUDENT') {
-      let studentReq = allReqs.find(r => r.studentId === currentUser.id);
-      if (!studentReq) {
-        // Automatically ensure a clearance request container exists for the student
-        studentReq = storageService.createClearanceRequest(currentUser);
-      }
-      setMyRequest(studentReq);
+    if (currentUser.role === 'STUDENT') {
+      setMyRequest(allReqs.find((request) => request.studentId === currentUser.id) || null);
     }
     setLoading(false);
   }, [currentUser]);
@@ -37,79 +43,60 @@ export const ClearanceProvider = ({ children }) => {
   }, [refreshData]);
 
   // Student initiates clearance
-  const submitClearanceApplication = () => {
+  const submitClearanceApplication = async () => {
     if (!currentUser || currentUser.role !== 'STUDENT') {
       throw new Error('Only registered students can apply for clearance.');
     }
 
-    const newReq = storageService.createClearanceRequest(currentUser);
-    refreshData();
+    const newReq = await apiService.createClearanceRequest();
+    await refreshData();
     return newReq;
   };
 
   // Student uploads document
-  const uploadDocument = (docType, docName, docBase64, fileSize) => {
-    let req = myRequest;
-    if (!req && currentUser) {
-      req = storageService.createClearanceRequest(currentUser);
-    }
-
-    const updated = storageService.uploadStudentDocument(req.id, docType, docName, docBase64, fileSize);
-    refreshData();
+  const uploadDocument = async (docType, docName, docBase64, fileSize, mimeType) => {
+    const request = myRequest || await apiService.createClearanceRequest();
+    const updated = await apiService.uploadDocument(request.id, docType, docName, docBase64, fileSize, mimeType);
+    await refreshData();
     return updated;
   };
 
   // Student deletes document
-  const deleteDocument = (docId) => {
+  const deleteDocument = async (docId) => {
     if (!myRequest) return;
-    const updated = storageService.deleteStudentDocument(myRequest.id, docId);
-    refreshData();
+    const updated = await apiService.deleteDocument(myRequest.id, docId);
+    await refreshData();
     return updated;
   };
 
   // Fast Automated Clearance Verification Engine
-  const runAutomatedVerification = () => {
+  const runAutomatedVerification = async () => {
     if (!myRequest) return null;
-    const updated = storageService.completeAllDepartmentClearances(myRequest.id);
-    refreshData();
+    const updated = await apiService.runAutomatedVerification(myRequest.id);
+    await refreshData();
     return updated;
   };
 
   // Department officer approves or rejects
-  const updateDepartmentStatus = (requestId, status, comments) => {
+  const updateDepartmentStatus = async (requestId, status, comments) => {
     if (!currentUser || (currentUser.role !== 'OFFICER' && currentUser.role !== 'ADMIN')) {
       throw new Error('Unauthorized. Only designated departmental officers can review requests.');
     }
 
     const deptCode = currentUser.departmentCode || 'BURSARY';
-
-    const updated = storageService.updateDepartmentClearanceStatus(
-      requestId,
-      deptCode,
-      status,
-      currentUser.fullName,
-      comments
-    );
-
-    refreshData();
+    const updated = await apiService.updateDepartmentStatus(requestId, deptCode, status, comments);
+    await refreshData();
     return updated;
   };
 
   // Admin / Supervisor manual override
-  const adminOverrideStatus = (requestId, deptCode, status, comments) => {
+  const adminOverrideStatus = async (requestId, deptCode, status, comments) => {
     if (!currentUser || currentUser.role !== 'ADMIN') {
       throw new Error('Unauthorized. Admin privileges required.');
     }
 
-    const updated = storageService.updateDepartmentClearanceStatus(
-      requestId,
-      deptCode,
-      status,
-      `ADMIN: ${currentUser.fullName}`,
-      comments
-    );
-
-    refreshData();
+    const updated = await apiService.updateDepartmentStatus(requestId, deptCode, status, comments);
+    await refreshData();
     return updated;
   };
 

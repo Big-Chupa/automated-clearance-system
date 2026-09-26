@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { storageService } from '../services/storageService';
+import { useClearance } from '../context/ClearanceContext';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
 
 const AdminDashboard = () => {
   const { currentUser } = useAuth();
-  const departments = storageService.getDepartments();
+  const { departments } = useClearance();
 
   return (
     <div className="app-layout">

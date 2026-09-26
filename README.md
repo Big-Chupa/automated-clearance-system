@@ -1,7 +1,7 @@
-# Design and Implementation of an Automated Clearance System for Graduates
+# Development of an Automated Clearance System for Graduates
 ### Ekiti State University (EKSU) Clearance Portal
 
-An automated, paperless undergraduate and graduate clearance portal built with **React.js**, **React Router**, **React Context API**, and pure **Vanilla CSS**. Features persistent browser Local Storage state simulation, multi-departmental approval tracking, supporting document uploads, immutable audit logging, compliance analytics reporting, and tamper-resistant digital final clearance certificates.
+An automated, paperless undergraduate and graduate clearance portal built with **React.js**, **React Router**, **React Context API**, and pure **Vanilla CSS**. The project uses browser Local Storage and Session Storage for its demonstration data layer, including multi-departmental approval tracking, supporting document uploads, audit logging, compliance analytics reporting, and digital final clearance certificates.
 
 ---
 
@@ -14,7 +14,7 @@ An automated, paperless undergraduate and graduate clearance portal built with *
 - **Supporting Document Verification:** Graduating students can upload PDFs and image proofs (Bursary school fees receipt, Library return slip, Project approval page, Result slip, and Student Affairs ID) for desk officer inspection before approval.
 - **Tamper-Resistant Digital Certification:** Dynamic certificate unlocking equipped with verification serial numbers, university crests, registrar signatures, and print-optimized stylesheet.
 - **Fully Responsive UI:** Adaptive off-canvas drawer navigation, responsive table containers, auto-scaling metric widgets, and touch-friendly controls across smartphones, tablets, laptops, and desktops.
-- **Zero-Backend Prototype Persistence:** Pure client-side data layer utilizing `localStorage` and `sessionStorage` for portable academic demonstrations.
+- **Browser-Based Persistence:** Pure client-side data layer utilizing `localStorage` and `sessionStorage` for portable academic demonstrations.
 
 ---
 
