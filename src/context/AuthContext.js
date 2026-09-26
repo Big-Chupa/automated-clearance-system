@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password, selectedRole) => {
     const user = await apiService.login(identifier, password, selectedRole);
->>>>>>> 0c4b31c (Finalize automated clearance system updates)
     setCurrentUser(user);
     return user;
   };
