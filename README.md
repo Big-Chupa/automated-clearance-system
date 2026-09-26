@@ -1,103 +1,94 @@
-# Development of an Automated Clearance System for Graduates
-### Ekiti State University (EKSU) Clearance Portal
+# EKSU Automated Clearance System
 
-An automated, paperless undergraduate and graduate clearance portal built with **React.js**, **React Router**, **React Context API**, and pure **Vanilla CSS**. The project uses browser Local Storage and Session Storage for its demonstration data layer, including multi-departmental approval tracking, supporting document uploads, audit logging, compliance analytics reporting, and digital final clearance certificates.
+A React-based clearance portal prototype for Ekiti State University (EKSU), with an Express API and MongoDB persistence. The application demonstrates student registration and login, clearance requests, department approvals, document review, notifications, audit logs, and certificate access after required approvals.
 
----
+## Features
 
-## 🏛️ Key Features
+- Role-based student, officer, and administrator views
+- Student clearance requests, progress tracking, and supporting document uploads
+- Department and administrator review workflows
+- Notifications, audit logs, student and department management, and reports
+- Certificate preview with print support; academic classification shown is example prototype data, not an official result
+- Responsive interface
 
-- **Multi-Role Portal Architecture:**
-  - 👨‍🎓 **Student Portal:** Initiate clearance, real-time 10-unit tracking, upload verification receipts/project sheets, view notifications, and print verified final clearance certificate.
-  - 🏢 **Department Officer Portal:** Review submitted applications, inspect attached student proofs, approve or reject with comments, and track pending departmental rosters.
-  - ⚡ **Administrator Portal:** System overview, user management, department unit configuration, statistical reports with CSV export, system settings toggles, and security audit trail.
-- **Supporting Document Verification:** Graduating students can upload PDFs and image proofs (Bursary school fees receipt, Library return slip, Project approval page, Result slip, and Student Affairs ID) for desk officer inspection before approval.
-- **Tamper-Resistant Digital Certification:** Dynamic certificate unlocking equipped with verification serial numbers, university crests, registrar signatures, and print-optimized stylesheet.
-- **Fully Responsive UI:** Adaptive off-canvas drawer navigation, responsive table containers, auto-scaling metric widgets, and touch-friendly controls across smartphones, tablets, laptops, and desktops.
-- **Browser-Based Persistence:** Pure client-side data layer utilizing `localStorage` and `sessionStorage` for portable academic demonstrations.
+## Technology
 
----
+- Frontend: React 18, React Router, and CSS
+- Backend: Node.js, Express, and MongoDB via Mongoose
+- Authentication: JWT-based API sessions
 
-## 📁 Project Structure
+## Requirements
 
-```
-automated-clearance-system/
-├── public/
-│   └── index.html               # Entry HTML with university branding
-├── src/
-│   ├── components/
-│   │   └── common/              # Navbar, Sidebar, Modal, ProgressBar, Badges
-│   ├── context/
-│   │   ├── AuthContext.js       # Role-based auth & session management
-│   │   ├── ClearanceContext.js  # Clearance workflow & document uploads
-│   │   └── NotificationContext.js # Toast notifications
-│   ├── data/
-│   │   └── initialData.js       # Seed mock records & officers
-│   ├── pages/
-│   │   ├── AdminDashboard.js    # Administrator overview
-│   │   ├── CertificatePage.js   # Final printable certificate
-│   │   ├── ClearancePage.js     # Progress tracker & document uploader
-│   │   ├── DepartmentManagementPage.js # Clearance unit management & document verification
-│   │   ├── LoginPage.js         # Role-based sign-in
-│   │   ├── NotificationsPage.js # Activity & approval notifications
-│   │   ├── RegisterPage.js      # Student onboarding
-│   │   ├── ReportsPage.js       # Compliance reports & CSV export
-│   │   ├── SettingsPage.js      # System settings & prototype controls
-│   │   ├── StudentDashboard.js  # Student dashboard
-│   │   └── StudentManagementPage.js # Student user roster
-│   ├── services/
-│   │   └── storageService.js    # LocalStorage CRUD & transaction layer
-│   ├── styles/
-│   │   ├── certificate.css      # Print & certificate layout
-│   │   ├── global.css           # Pure Vanilla CSS design tokens & responsive rules
-│   │   └── variables.css        # EKSU deep wine red color palette
-│   ├── App.js                   # Client-side routing configuration
-│   └── index.js                 # React DOM mount point
-├── package.json
-└── README.md
+- Node.js 18 or later and npm
+- MongoDB running locally or a MongoDB Atlas database
+
+## Run Locally
+
+### 1. Configure the backend
+
+In PowerShell, from the repository root:
+
+```powershell
+Copy-Item backend/.env.example backend/.env
 ```
 
----
+Edit `backend/.env` and set `MONGODB_URI` to your database connection string and `JWT_SECRET` to a long, random secret. Keep this file private; it is ignored by Git.
 
-## 🚀 Getting Started
+Then install and start the API:
 
-### Prerequisites
-- [Node.js](https://nodejs.org) (v16 or higher)
-- npm (installed with Node.js)
+```powershell
+cd backend
+npm install
+npm run dev
+```
 
-### Installation & Execution
+The API defaults to `http://localhost:5000`. Check that it is running at `http://localhost:5000/api/health`.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Big-Chupa/automated-clearance-system.git
-   cd automated-clearance-system
-   ```
+### 2. Seed development data
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+In a second terminal, from the repository root:
 
-3. Start the development server:
-   ```bash
-   npm start
-   ```
+```powershell
+cd backend
+npm run seed
+```
 
-4. The application will open automatically in your default browser at:
-   `http://localhost:3000`
+The seed script creates or updates development accounts and departments. It sets seeded account passwords to `password123`; use these accounts only in a local development database. Do not run the seed script against production data.
 
----
+### 3. Start the frontend
 
-## 🔑 Demo User Credentials
+In another terminal, from the repository root:
 
-| Role | Identifier | Password | Access Rights |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@eksu.edu.ng` | `password123` | System Settings, Department Management, Analytics Reports, Audit Logs |
-| **Student** | `220903067` | `password123` | Clearance Application, Document Upload, Progress Tracking, Certificate |
-| **Bursary Officer** | `bursary@eksu.edu.ng` | `password123` | Financial Review, Document Verification, Endorsements |
-| **Library Officer** | `library@eksu.edu.ng` | `password123` | Book Return Verification, Library Approval |
+```powershell
+npm install
+npm start
+```
 
----
+The frontend runs at `http://localhost:3000` and uses `http://localhost:5000` for the API by default. To change the API URL, set `REACT_APP_API_URL` in a root `.env.local` file before starting the frontend.
 
-## 📜 License
-This project is an academic research prototype developed for Final Year Computer Science graduation project requirements.
+## Build and Tests
+
+From the repository root:
+
+```powershell
+npm run build
+npm test
+```
+
+Backend dependencies and scripts are managed separately in `backend/`. See [backend/README.md](backend/README.md) for backend setup details and API routes.
+
+## Project Layout
+
+```text
+src/                 React application, pages, contexts, styles, and API client
+backend/             Express API, MongoDB models, routes, and development seed script
+public/              Frontend HTML entry point
+```
+
+## Prototype and Security Notes
+
+This repository is an academic demonstration, not a production clearance or academic-records system. Seeded accounts and passwords are for local development only. Configure secrets securely, protect personal data, and complete a security and operational review before any real deployment. Certificate honours classifications are illustrative and are not evidence of official academic results.
+
+## License
+
+Developed as an academic research prototype for a final-year computer science project.
